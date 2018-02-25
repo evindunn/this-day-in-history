@@ -7,7 +7,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,10 +33,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String S_URL = "http://history.muffinlabs.com/date";
 
     private TreeMap<Integer, ArrayList<String>> history_data;
+    private int current_year;
+
     private TextView tv_history;
     private TextView tv_year;
     private ProgressBar progress_bar;
-    private int current_year;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +54,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tv_year.setOnClickListener(this);
         b_prev.setOnClickListener(this);
         b_next.setOnClickListener(this);
+    }
 
-        refresh();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!getTitle().equals(getTodaysDate())) {
+            refresh();
+        }
     }
 
     @Override
@@ -215,6 +224,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            tv_year.setText("");
+            tv_history.setText("");
+
             tv_year.setVisibility(View.INVISIBLE);
             tv_history.setVisibility(View.INVISIBLE);
             progress_bar.setVisibility(View.VISIBLE);
