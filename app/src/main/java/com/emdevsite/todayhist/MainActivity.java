@@ -104,17 +104,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void parseData(JSONObject json) {
         try {
-            JSONArray events = json.getJSONObject("data").getJSONArray("Events");
+            JSONArray events = json.getJSONObject(getString(R.string.json_data_key))
+                    .getJSONArray(getString(R.string.json_event_key));
+            String year_key = getString(R.string.json_event_year_key);
+            String text_key = getString(R.string.json_event_text_key);
             for (int i = 0; i < events.length(); i++) {
                 JSONObject event = events.getJSONObject(i);
-                if (event.has("year") && event.has("text")) {
-                    if (history_data.containsKey(event.getInt("year"))) {
-                        ArrayList<String> text = history_data.get(event.getInt("year"));
-                        text.add(event.getString("text"));
+                if (event.has(year_key) && event.has(text_key)) {
+                    if (history_data.containsKey(event.getInt(year_key))) {
+                        ArrayList<String> text = history_data.get(event.getInt(year_key));
+                        text.add(event.getString(text_key));
                     } else {
                         ArrayList<String> text = new ArrayList<>();
-                        text.add(event.getString("text"));
-                        history_data.put(event.getInt("year"), text);
+                        text.add(event.getString(text_key));
+                        history_data.put(event.getInt(year_key), text);
                     }
                 }
             }

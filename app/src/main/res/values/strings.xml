@@ -1,15 +1,24 @@
 <resources>
     <string name="app_name">This Day In History</string>
+
     <string name="connect_err">
         Could not determine network connection status.
         Please try again with an active network connection.
     </string>
+
     <string name="year">Year</string>
+
     <string name="license">License</string>
     <string name="license_content">
         All data is taken directly and unmodified from http://history.muffinlabs.com/date.
         This data is licensed under CC BY-SA 3.0, which can be found at
         https://creativecommons.org/licenses/by-sa/3.0/us/legalcode.
     </string>
-    <string name="license_ok">Ok</string>
+    <string name="license_ok">OK</string>
+
+
+    <string name="json_event_key">Events</string>
+    <string name="json_data_key">data</string>
+    <string name="json_event_year_key">year</string>
+    <string name="json_event_text_key">text</string>
 </resources>
