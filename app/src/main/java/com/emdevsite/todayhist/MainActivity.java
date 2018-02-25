@@ -41,8 +41,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setTitle(getTodaysDate());
-        history_data = new TreeMap<>(Collections.reverseOrder());
         tv_year = findViewById(R.id.tv_year);
         tv_history = findViewById(R.id.tv_history);
         progress_bar = findViewById(R.id.progress_bar);
@@ -54,17 +52,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         b_prev.setOnClickListener(this);
         b_next.setOnClickListener(this);
 
-        if (checkInternetConnection(this)) {
-            new GetHistoryTask().execute(S_URL);
-        } else {
-            Toast.makeText(this, R.string.connect_err, Toast.LENGTH_LONG).show();
-        }
+        refresh();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.action_license, menu);
+        inflater.inflate(R.menu.menu, menu);
         return true;
     }
 
@@ -85,8 +79,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     )
                     .create()
                     .show();
+        } else if (item.getItemId() == R.id.mi_refresh) {
+            refresh();
         }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void refresh() {
+        setTitle(getTodaysDate());
+
+        if (history_data != null) {
+            history_data.clear();
+        } else {
+            history_data = new TreeMap<>(Collections.<Integer>reverseOrder());
+        }
+
+        if (checkInternetConnection(this)) {
+            new GetHistoryTask().execute(S_URL);
+        } else {
+            Toast.makeText(
+                    this,
+                    R.string.connect_err,
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private static boolean checkInternetConnection(Context context) {

@@ -8,6 +8,7 @@
 
     <string name="year">Year</string>
 
+    <string name="refresh">Refresh</string>
     <string name="license">License</string>
     <string name="license_content">
         All data is taken directly and unmodified from http://history.muffinlabs.com/date.
@@ -16,9 +17,8 @@
     </string>
     <string name="license_ok">OK</string>
 
-
-    <string name="json_event_key">Events</string>
-    <string name="json_data_key">data</string>
-    <string name="json_event_year_key">year</string>
-    <string name="json_event_text_key">text</string>
+    <string name="json_event_key" translatable="false">Events</string>
+    <string name="json_data_key" translatable="false">data</string>
+    <string name="json_event_year_key" translatable="false">year</string>
+    <string name="json_event_text_key" translatable="false">text</string>
 </resources>
