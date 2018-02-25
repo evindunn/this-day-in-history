@@ -4,8 +4,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
-    tools:context="com.example.android.todayhist.MainActivity">
+    android:background="@color/colorPrimaryDark"
+    tools:context="com.emdevsite.todayhist.MainActivity">
 
     <ProgressBar
         android:id="@+id/progress_bar"
@@ -14,20 +14,32 @@
         android:layout_centerInParent="true"
         android:visibility="invisible"/>
 
-    <TextView
-        android:id="@+id/tv_year"
+    <LinearLayout
+        android:id="@+id/year_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:textColor="@color/colorAccent"
-        android:background="@color/colorPrimaryDark"
-        android:padding="10dp"
-        android:layout_alignParentTop="true"/>
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/b_year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="24sp"
+            android:paddingEnd="24sp"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="@color/colorAccent"
+            android:background="@color/colorPrimaryDark"/>
+
+    </LinearLayout>
 
     <ScrollView
-        android:layout_below="@+id/tv_year"
+        android:layout_below="@+id/year_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
@@ -46,7 +58,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_horizontal"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         android:padding="8dp"
         android:layout_alignParentBottom="true">
 
@@ -59,8 +71,8 @@
             android:layout_marginEnd="24dp"
             android:textColor="@color/colorAccent"
             android:textStyle="bold"
-            android:background="@color/colorPrimary"
-            android:text="Prev"/>
+            android:background="@color/colorPrimaryDark"
+            android:text="@string/prev"/>
 
         <Button
             android:id="@+id/b_next"
@@ -69,8 +81,8 @@
             android:layout_marginStart="24dp"
             android:textColor="@color/colorAccent"
             android:textStyle="bold"
-            android:background="@color/colorPrimary"
-            android:text="Next"/>
+            android:background="@color/colorPrimaryDark"
+            android:text="@string/next"/>
     </LinearLayout>
 
 </RelativeLayout>

@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int current_year;
 
     private TextView tv_history;
-    private TextView tv_year;
+    private Button b_year;
     private ProgressBar progress_bar;
 
     @Override
@@ -44,14 +44,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tv_year = findViewById(R.id.tv_year);
+        b_year = findViewById(R.id.b_year);
         tv_history = findViewById(R.id.tv_history);
         progress_bar = findViewById(R.id.progress_bar);
 
         Button b_prev = findViewById(R.id.b_prev);
         Button b_next = findViewById(R.id.b_next);
 
-        tv_year.setOnClickListener(this);
+        b_year.setOnClickListener(this);
         b_prev.setOnClickListener(this);
         b_next.setOnClickListener(this);
     }
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void textRefresh() {
-        tv_year.setText(String.valueOf(current_year));
+        b_year.setText(String.valueOf(current_year));
         tv_history.setText("");
         for (String event : history_data.get(current_year)) {
             tv_history.append(event + "\n\n");
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             nextYear();
         } else if (view.getId() == R.id.b_prev) {
             prevYear();
-        } else if (view.getId() == R.id.tv_year) {
+        } else if (view.getId() == R.id.b_year) {
             showYearDialog();
         }
     }
@@ -225,10 +225,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected void onPreExecute() {
             super.onPreExecute();
 
-            tv_year.setText("");
+            b_year.setText("");
             tv_history.setText("");
 
-            tv_year.setVisibility(View.INVISIBLE);
+            b_year.setVisibility(View.INVISIBLE);
             tv_history.setVisibility(View.INVISIBLE);
             progress_bar.setVisibility(View.VISIBLE);
         }
@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 textRefresh();
             }
             progress_bar.setVisibility(View.INVISIBLE);
-            tv_year.setVisibility(View.VISIBLE);
+            b_year.setVisibility(View.VISIBLE);
             tv_history.setVisibility(View.VISIBLE);
         }
     }
