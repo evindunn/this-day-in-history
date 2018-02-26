@@ -137,13 +137,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (int i = 0; i < events.length(); i++) {
                 JSONObject event = events.getJSONObject(i);
                 if (event.has(year_key) && event.has(text_key)) {
-                    if (history_data.containsKey(event.getInt(year_key))) {
-                        ArrayList<String> text = history_data.get(event.getInt(year_key));
+                    int year = Utils.extractInt(event.getString(year_key));
+                    if (history_data.containsKey(year)) {
+                        ArrayList<String> text = history_data.get(year);
                         text.add(event.getString(text_key));
                     } else {
                         ArrayList<String> text = new ArrayList<>();
                         text.add(event.getString(text_key));
-                        history_data.put(event.getInt(year_key), text);
+                        history_data.put(year, text);
                     }
                 }
             }

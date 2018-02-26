@@ -41,10 +41,6 @@ public class HistoryGetter {
         return json_data;
     }
 
-    private static String getErrorString(Exception e) {
-        return String.format("%s: %s", e.getClass(), e.getMessage());
-    }
-
     private static String pullRawData(URL url) {
         HttpURLConnection connection = null;
         String data = null;
@@ -71,5 +67,9 @@ public class HistoryGetter {
             }
         }
         return data;
+    }
+
+    private static String getErrorString(Exception e) {
+        return String.format("%s: %s", e.getClass(), e.getMessage());
     }
 }
