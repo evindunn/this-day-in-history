@@ -10,9 +10,12 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -164,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -237,11 +240,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // TODO: There is some sort of miscommunication betwn history_keys and view_adapter and button text
                 history_keys = keys.toArray(new YearKey[keys.size()]);
                 view_adapter.setCount(history_keys.length);
-                b_year.setText(history_keys[0].asString());
+                b_year.setVisibility(View.VISIBLE);
+            } else {
+                view_adapter.setCount(1);
             }
             view_adapter.notifyDataSetChanged();
             progress_bar.setVisibility(View.INVISIBLE);
-            b_year.setVisibility(View.VISIBLE);
         }
     }
 }

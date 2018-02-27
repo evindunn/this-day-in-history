@@ -23,7 +23,7 @@ public class HistoryGetter {
 
     public static JSONObject getJSON(String s_url) {
         URL url;
-        JSONObject json_data;
+        JSONObject json_data = null;
         try {
             url = new URL(s_url);
         } catch (MalformedURLException e) {
@@ -33,9 +33,8 @@ public class HistoryGetter {
 
         try {
             json_data = new JSONObject(pullRawData(url));
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.w(TAG, getErrorString(e));
-            return null;
         }
 
         return json_data;
@@ -57,7 +56,7 @@ public class HistoryGetter {
             } else {
                 data = null;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.w(TAG, String.format("Error connecting to %s", url.toString()));
             Log.w(TAG, getErrorString(e));
 
