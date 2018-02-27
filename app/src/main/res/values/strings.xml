@@ -22,4 +22,7 @@
     <string name="json_data_key" translatable="false">data</string>
     <string name="json_event_year_key" translatable="false">year</string>
     <string name="json_event_text_key" translatable="false">text</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

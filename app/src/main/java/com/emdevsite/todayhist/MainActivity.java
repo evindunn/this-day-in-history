@@ -3,17 +3,24 @@ package com.emdevsite.todayhist;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,10 +42,11 @@ import java.util.TreeMap;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String S_URL = "http://history.muffinlabs.com/date";
 
-    private TreeMap<YearKey, ArrayList<String>> history_data;
-    private YearKey current_year;
+    private TreeMap<YearKey, String> history_data;
+    private YearKey[] history_keys;
 
-    private TextView tv_history;
+    private ViewPager view_pager;
+    private HistoryViewAdapter view_adapter;
     private Button b_year;
     private ProgressBar progress_bar;
 
@@ -47,22 +55,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        b_year = findViewById(R.id.b_year);
-        tv_history = findViewById(R.id.tv_history);
+        view_pager = findViewById(R.id.view_pager);
+        view_adapter = new HistoryViewAdapter(getSupportFragmentManager());
+        view_pager.setAdapter(view_adapter);
+
         progress_bar = findViewById(R.id.progress_bar);
-
-        Button b_prev = findViewById(R.id.b_prev);
-        Button b_next = findViewById(R.id.b_next);
-
+        b_year = findViewById(R.id.b_year);
         b_year.setOnClickListener(this);
-        b_prev.setOnClickListener(this);
-        b_next.setOnClickListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!getTitle().equals(getTodaysDate())) {
+        if (!getTitle().equals(Utils.getTodaysDate())) {
             refresh();
         }
     }
@@ -98,16 +103,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onClick(View view) {
+        if (view.getId() == R.id.b_year) {
+            showYearDialog();
+        }
+    }
+
+    // TODO: This is awful, use DialogFragment
+    private void showYearDialog() {
+        final String[] s_keys = YearKey.toStrings(history_data.keySet());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.year)
+            .setItems(s_keys, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    view_pager.setCurrentItem(i);
+                }
+            });
+        builder.create().show();
+    }
+
     private void refresh() {
-        setTitle(getTodaysDate());
+        setTitle(Utils.getTodaysDate());
 
         if (history_data != null) {
             history_data.clear();
         } else {
             history_data = new TreeMap<>(Collections.<YearKey>reverseOrder());
         }
+        history_keys = null;
 
-        if (checkInternetConnection(this)) {
+        if (Utils.checkInternetConnection(this)) {
             new GetHistoryTask().execute(S_URL);
         } else {
             Toast.makeText(
@@ -116,19 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.LENGTH_LONG
             ).show();
         }
-    }
-
-    private static boolean checkInternetConnection(Context context) {
-        ConnectivityManager conn_mg = (ConnectivityManager) context.getSystemService(
-                CONNECTIVITY_SERVICE
-        );
-
-        if (conn_mg != null) {
-            NetworkInfo network = conn_mg.getActiveNetworkInfo();
-            return network != null && network.isConnectedOrConnecting();
-        }
-
-        return false;
     }
 
     private void parseData(JSONObject json) {
@@ -141,12 +155,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONObject event = events.getJSONObject(i);
                 if (event.has(jyear_key) && event.has(jtext_key)) {
                     YearKey year = new YearKey(event.getString(jyear_key));
+                    String text = event.getString(jtext_key);
                     if (history_data.containsKey(year)) {
-                        ArrayList<String> text = history_data.get(year);
-                        text.add(event.getString(jtext_key));
+                        String data = history_data.get(year);
+                        history_data.put(year, String.format("%s\n\n%s", data, text));
                     } else {
-                        ArrayList<String> text = new ArrayList<>();
-                        text.add(event.getString(jtext_key));
                         history_data.put(year, text);
                     }
                 }
@@ -156,80 +169,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private static String getTodaysDate() {
-        Calendar calendar = Calendar.getInstance();
-        Locale locale = Locale.getDefault();
-        String day_of_week = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, locale);
-        String month = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, locale);
-        int day_of_month = calendar.get(Calendar.DAY_OF_MONTH);
+    /**
+     * Created by edunn on 2/27/18.
+     * Class for providing a new HistoryFragment to the user following a swipe
+     */
 
-        return String.format(locale, "%s, %s %d", day_of_week, month, day_of_month);
-    }
+    class HistoryViewAdapter extends FragmentStatePagerAdapter {
+        int count;
 
-    private void prevYear() {
-        if (current_year.equals(history_data.firstKey())) {
-            current_year = history_data.lastKey();
-        } else {
-            current_year = history_data.lowerKey(current_year);
+        HistoryViewAdapter(FragmentManager fm) {
+            super(fm);
+            count = 0;
         }
-        textRefresh();
-    }
 
-    private void nextYear() {
-        if (current_year.equals(history_data.lastKey())) {
-            current_year = history_data.firstKey();
-        } else {
-            current_year = history_data.higherKey(current_year);
+        @Override
+        public Fragment getItem(int i) {
+            Fragment fragment = new HistoryFragment();
+            try {
+                YearKey requested_year = history_keys[i];
+                b_year.setText(requested_year.asString());
+
+                Bundle args = new Bundle();
+                // TODO: Use strings.xml
+                args.putString("data", history_data.get(requested_year));
+                fragment.setArguments(args);
+            } catch (Exception e) {
+                Log.w(getLocalClassName(), String.format("%s: %s", e.getClass(), e.getMessage()));
+            }
+            return fragment;
         }
-        textRefresh();
-    }
 
-    private void textRefresh() {
-        b_year.setText(current_year.asString());
-        tv_history.setText("");
-        for (String event : history_data.get(current_year)) {
-            tv_history.append(event + "\n\n");
+        @Override
+        public int getCount() {
+            return count;
         }
-    }
 
-    @Override
-    public void onClick(View view) {
-        if (view.getId() == R.id.b_next) {
-            nextYear();
-        } else if (view.getId() == R.id.b_prev) {
-            prevYear();
-        } else if (view.getId() == R.id.b_year) {
-            showYearDialog();
+        void setCount(int count) {
+            this.count = count;
         }
     }
 
-    // TODO: This is awful, use DialogFragment
-    private void showYearDialog() {
-        final YearKey[] keys = history_data.keySet()
-            .toArray(new YearKey[history_data.keySet().size()]);
-        final String[] s_keys = YearKey.toStrings(history_data.keySet());
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.year)
-                .setItems(s_keys, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        current_year = keys[i];
-                        textRefresh();
-                    }
-                });
-        builder.create().show();
-    }
-
+    // TODO: Replace
     private class GetHistoryTask extends AsyncTask<String, Void, JSONObject> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
             b_year.setText("");
-            tv_history.setText("");
-
             b_year.setVisibility(View.INVISIBLE);
-            tv_history.setVisibility(View.INVISIBLE);
             progress_bar.setVisibility(View.VISIBLE);
         }
 
@@ -246,12 +233,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super.onPostExecute(jsonObject);
             parseData(jsonObject);
             if (history_data != null) {
-                current_year = history_data.firstKey();
-                textRefresh();
+                Set<YearKey> keys = history_data.keySet();
+                // TODO: There is some sort of miscommunication betwn history_keys and view_adapter and button text
+                history_keys = keys.toArray(new YearKey[keys.size()]);
+                view_adapter.setCount(history_keys.length);
+                b_year.setText(history_keys[0].asString());
             }
+            view_adapter.notifyDataSetChanged();
             progress_bar.setVisibility(View.INVISIBLE);
             b_year.setVisibility(View.VISIBLE);
-            tv_history.setVisibility(View.VISIBLE);
         }
     }
 }
