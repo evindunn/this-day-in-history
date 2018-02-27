@@ -65,6 +65,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progress_bar = findViewById(R.id.progress_bar);
         b_year = findViewById(R.id.b_year);
         b_year.setOnClickListener(this);
+
+        view_pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int i) {
+                super.onPageSelected(i);
+                b_year.setText(history_keys[i].asString());
+            }
+        });
     }
 
     @Override
@@ -189,12 +197,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public Fragment getItem(int i) {
             Fragment fragment = new HistoryFragment();
             try {
-                YearKey requested_year = history_keys[i];
-                b_year.setText(requested_year.asString());
-
                 Bundle args = new Bundle();
                 // TODO: Use strings.xml
-                args.putString("data", history_data.get(requested_year));
+                args.putString("data", history_data.get(history_keys[i]));
                 fragment.setArguments(args);
             } catch (Exception e) {
                 Log.w(getLocalClassName(), String.format("%s: %s", e.getClass(), e.getMessage()));
@@ -220,6 +225,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             b_year.setText("");
             b_year.setVisibility(View.INVISIBLE);
+            view_pager.setVisibility(View.INVISIBLE);
+
             progress_bar.setVisibility(View.VISIBLE);
         }
 
@@ -237,10 +244,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             parseData(jsonObject);
             if (history_data != null) {
                 Set<YearKey> keys = history_data.keySet();
-                // TODO: There is some sort of miscommunication betwn history_keys and view_adapter and button text
                 history_keys = keys.toArray(new YearKey[keys.size()]);
                 view_adapter.setCount(history_keys.length);
+                b_year.setText(history_keys[0].asString());
                 b_year.setVisibility(View.VISIBLE);
+                view_pager.setVisibility(View.VISIBLE);
             } else {
                 view_adapter.setCount(1);
             }
