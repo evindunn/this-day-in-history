@@ -23,17 +23,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String S_URL = "http://history.muffinlabs.com/date";
 
-    private TreeMap<Integer, ArrayList<String>> history_data;
-    private int current_year;
+    private TreeMap<YearKey, ArrayList<String>> history_data;
+    private YearKey current_year;
 
     private TextView tv_history;
     private Button b_year;
@@ -101,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (history_data != null) {
             history_data.clear();
         } else {
-            history_data = new TreeMap<>(Collections.<Integer>reverseOrder());
+            history_data = new TreeMap<>(Collections.<YearKey>reverseOrder());
         }
 
         if (checkInternetConnection(this)) {
@@ -132,18 +135,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             JSONArray events = json.getJSONObject(getString(R.string.json_data_key))
                     .getJSONArray(getString(R.string.json_event_key));
-            String year_key = getString(R.string.json_event_year_key);
-            String text_key = getString(R.string.json_event_text_key);
+            String jyear_key = getString(R.string.json_event_year_key);
+            String jtext_key = getString(R.string.json_event_text_key);
             for (int i = 0; i < events.length(); i++) {
                 JSONObject event = events.getJSONObject(i);
-                if (event.has(year_key) && event.has(text_key)) {
-                    int year = Utils.extractInt(event.getString(year_key));
+                if (event.has(jyear_key) && event.has(jtext_key)) {
+                    YearKey year = new YearKey(event.getString(jyear_key));
                     if (history_data.containsKey(year)) {
                         ArrayList<String> text = history_data.get(year);
-                        text.add(event.getString(text_key));
+                        text.add(event.getString(jtext_key));
                     } else {
                         ArrayList<String> text = new ArrayList<>();
-                        text.add(event.getString(text_key));
+                        text.add(event.getString(jtext_key));
                         history_data.put(year, text);
                     }
                 }
@@ -164,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prevYear() {
-        if (current_year == history_data.firstKey()) {
+        if (current_year.equals(history_data.firstKey())) {
             current_year = history_data.lastKey();
         } else {
             current_year = history_data.lowerKey(current_year);
@@ -173,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void nextYear() {
-        if (current_year == history_data.lastKey()) {
+        if (current_year.equals(history_data.lastKey())) {
             current_year = history_data.firstKey();
         } else {
             current_year = history_data.higherKey(current_year);
@@ -182,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void textRefresh() {
-        b_year.setText(String.valueOf(current_year));
+        b_year.setText(current_year.asString());
         tv_history.setText("");
         for (String event : history_data.get(current_year)) {
             tv_history.append(event + "\n\n");
@@ -202,16 +205,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // TODO: This is awful, use DialogFragment
     private void showYearDialog() {
-        final Integer[] keys = history_data.keySet()
-                .toArray(new Integer[history_data.keySet().size()]);
-        final String[] str_keys = new String[keys.length];
-        for (int i = 0; i < str_keys.length; i++) {
-            str_keys[i] = String.valueOf(keys[i]);
-        }
-
+        final YearKey[] keys = history_data.keySet()
+            .toArray(new YearKey[history_data.keySet().size()]);
+        final String[] s_keys = YearKey.toStrings(history_data.keySet());
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.year)
-                .setItems(str_keys, new DialogInterface.OnClickListener() {
+                .setItems(s_keys, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         current_year = keys[i];
