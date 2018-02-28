@@ -14,7 +14,7 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
  * Various useful static methods
  */
 
-class Utils {
+public class Utils {
 
     /**
      * @param context The current Android context
@@ -44,5 +44,9 @@ class Utils {
         int day_of_month = calendar.get(Calendar.DAY_OF_MONTH);
 
         return String.format(locale, "%s, %s %d", day_of_week, month, day_of_month);
+    }
+
+    public static int extractInt(String in) {
+        return Integer.valueOf(in.replaceAll("\\D+", ""));
     }
 }

@@ -29,7 +29,7 @@ public class HistoryFragment extends Fragment {
         Bundle args = getArguments();
 
         // TODO: Use strings.xml
-        if (args.containsKey("data")) {
+        if (args != null && args.containsKey("data")) {
             data_view.setText(args.getString("data"));
         }
 
