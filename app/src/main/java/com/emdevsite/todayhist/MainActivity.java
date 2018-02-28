@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 b_year.setText(history_keys[i].asString());
             }
         });
+
+        Toast.makeText(this, R.string.swipe_hint, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // TODO: This is awful, use DialogFragment
+    // TODO: This is awful, Drawer instead
     private void showYearDialog() {
         final String[] s_keys = YearKey.toStrings(history_data.keySet());
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
