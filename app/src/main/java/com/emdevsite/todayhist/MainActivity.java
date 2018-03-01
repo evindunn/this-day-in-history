@@ -19,14 +19,15 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.emdevsite.todayhist.data.HistoryGetter;
-import com.emdevsite.todayhist.data.HistoryYear;
 
-import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String S_URL = "http://history.muffinlabs.com/date";
 
-    HistoryYear[] history_data;
+    TreeMap<Integer, HashMap<String, String>> history_data;
+    Integer[] history_keys;
 
     private ViewPager view_pager;
     private HistoryViewAdapter view_adapter;
@@ -50,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onPageSelected(int i) {
                 super.onPageSelected(i);
-                b_year.setText(history_data[i].toString());
+                int key = history_keys[i];
+                b_year.setText(history_data.get(key).get(HistoryGetter.KEY_YEAR));
             }
         });
 
@@ -106,9 +108,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // TODO: This is awful, Drawer instead
     private void showYearDialog() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        String[] s_keys = new String[history_data.length];
-        for (int i = 0; i < history_data.length; i++) {
-            s_keys[i] = history_data[i].toString();
+        String[] s_keys = new String[history_keys.length];
+        for (int i = 0; i < history_keys.length; i++) {
+            int year = history_keys[i];
+            s_keys[i] = history_data.get(year).get(HistoryGetter.KEY_YEAR);
         }
         builder.setTitle(R.string.year)
             .setItems(s_keys, new DialogInterface.OnClickListener() {
@@ -125,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         history_data = null;
 
         if (Utils.checkInternetConnection(this)) {
-            new GetHistoryTask().execute(S_URL);
+            new GetHistoryTask().execute();
         } else {
             Toast.makeText(
                     this,
@@ -153,8 +156,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Fragment fragment = new HistoryFragment();
             try {
                 Bundle args = new Bundle();
-                // TODO: Use strings.xml
-                args.putString("data", history_data[i].getData());
+                int key = history_keys[i];
+                args.putString(
+                    HistoryGetter.KEY_TEXT,
+                    history_data.get(key).get(HistoryGetter.KEY_TEXT)
+                );
                 fragment.setArguments(args);
             } catch (Exception e) {
                 Log.w(getLocalClassName(), String.format("%s: %s", e.getClass(), e.getMessage()));
@@ -172,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     // TODO: Replace
-    private class GetHistoryTask extends AsyncTask<String, Void, JSONObject> {
+    private class GetHistoryTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -183,20 +189,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        protected JSONObject doInBackground(String... strings) {
-            if (strings.length > 0 && strings[0] != null) {
-                return HistoryGetter.getJSON(strings[0]);
+        protected Void doInBackground(Void... voids) {
+            history_data = HistoryGetter.getMap(S_URL);
+            if (history_data != null) {
+                // Do in background thread to save allocation time
+                history_keys = history_data.keySet().toArray(new Integer[history_data.size()]);
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            super.onPostExecute(jsonObject);
-            history_data = HistoryYear.parseData(getApplicationContext(), jsonObject);
+        protected void onPostExecute(Void nothing) {
+            super.onPostExecute(nothing);
             if (history_data != null) {
-                view_adapter.setCount(history_data.length);
-                b_year.setText(history_data[0].toString());
+                view_adapter.setCount(history_data.size());
+                b_year.setText(history_data.get(history_keys[0]).get(HistoryGetter.KEY_YEAR));
                 b_year.setVisibility(View.VISIBLE);
                 view_pager.setVisibility(View.VISIBLE);
             } else {

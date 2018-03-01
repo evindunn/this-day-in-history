@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.emdevsite.todayhist.data.HistoryGetter;
+
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -29,8 +31,8 @@ public class HistoryFragment extends Fragment {
         Bundle args = getArguments();
 
         // TODO: Use strings.xml
-        if (args != null && args.containsKey("data")) {
-            data_view.setText(args.getString("data"));
+        if (args != null && args.containsKey(HistoryGetter.KEY_TEXT)) {
+            data_view.setText(args.getString(HistoryGetter.KEY_TEXT));
         }
 
         return root_view;

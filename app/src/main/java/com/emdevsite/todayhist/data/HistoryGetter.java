@@ -2,13 +2,20 @@ package com.emdevsite.todayhist.data;
 
 import android.util.Log;
 
+import com.emdevsite.todayhist.R;
+import com.emdevsite.todayhist.Utils;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 /**
  * Created by edunn on 2/24/18.
@@ -18,6 +25,57 @@ import java.util.Scanner;
 
 public class HistoryGetter {
     private static final String TAG = HistoryGetter.class.getSimpleName();
+    private static final String KEY_DATA = "data";
+    private static final String KEY_EVENTS = "Events";
+    public static final String KEY_YEAR = "year";
+    public static final String KEY_TEXT = "text";
+
+    public static TreeMap<Integer, HashMap<String, String>> getMap(String s_url) {
+        JSONObject json = getJSON(s_url);
+        if (json == null) { return null; }
+
+        TreeMap<Integer, HashMap<String, String>> map = new TreeMap<>(
+            Collections.<Integer>reverseOrder());
+
+        try {
+            // TODO: Remove strings.xml replaced by constants
+            JSONArray events = json.getJSONObject(KEY_DATA)
+                .getJSONArray(KEY_EVENTS);
+
+            for (int i = 0; i < events.length(); i++) {
+                JSONObject event = events.getJSONObject(i);
+                if (event.has(KEY_YEAR) && event.has(KEY_TEXT)) {
+
+                    String year = event.getString(KEY_YEAR);
+                    String text = event.getString(KEY_TEXT);
+                    int year_int = Utils.extractInt(year);
+
+                    HashMap<String, String> inner_map;
+                    if (map.containsKey(year_int)) {
+                        inner_map = map.get(year_int);
+                        inner_map.put(
+                            KEY_TEXT,
+                            String.format("%s\n\n%s", inner_map.get(KEY_TEXT), text)
+                        );
+                    } else {
+                        inner_map = new HashMap<>();
+                        inner_map.put(KEY_YEAR, year);
+                        inner_map.put(KEY_TEXT, text);
+                    }
+
+                    map.put(year_int, inner_map);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(
+                HistoryGetter.class.getSimpleName(),
+                String.format("%s: %s", e.getClass(), e.getMessage())
+            );
+            return null;
+        }
+
+        return map;
+    }
 
     public static JSONObject getJSON(String s_url) {
         URL url;
