@@ -47,12 +47,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         b_year = findViewById(R.id.b_year);
         b_year.setOnClickListener(this);
 
+        // TODO: Set the year when page is swiped
         view_pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int i) {
                 super.onPageSelected(i);
-                int key = history_keys[i];
-                b_year.setText(history_data.get(key).get(HistoryGetter.KEY_YEAR));
             }
         });
 
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        if (!getTitle().equals(Utils.getTodaysDate())) {
+        if (!getTitle().equals(Utils.getDate())) {
             refresh();
         }
     }
@@ -105,26 +104,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // TODO: This is awful, Drawer instead
+    // TODO: Show year dialog, or replace with drawer
     private void showYearDialog() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        String[] s_keys = new String[history_keys.length];
-        for (int i = 0; i < history_keys.length; i++) {
-            int year = history_keys[i];
-            s_keys[i] = history_data.get(year).get(HistoryGetter.KEY_YEAR);
-        }
-        builder.setTitle(R.string.year)
-            .setItems(s_keys, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    view_pager.setCurrentItem(i);
-                }
-            });
-        builder.create().show();
+
     }
 
     private void refresh() {
-        setTitle(Utils.getTodaysDate());
+        setTitle(Utils.getDate());
         history_data = null;
 
         if (Utils.checkInternetConnection(this)) {
@@ -157,10 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 Bundle args = new Bundle();
                 int key = history_keys[i];
-                args.putString(
-                    HistoryGetter.KEY_TEXT,
-                    history_data.get(key).get(HistoryGetter.KEY_TEXT)
-                );
+                // TODO: Put putString(event text) in fragment
                 fragment.setArguments(args);
             } catch (Exception e) {
                 Log.w(getLocalClassName(), String.format("%s: %s", e.getClass(), e.getMessage()));
@@ -190,11 +173,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         protected Void doInBackground(Void... voids) {
-            history_data = HistoryGetter.getMap(S_URL);
-            if (history_data != null) {
-                // Do in background thread to save allocation time
-                history_keys = history_data.keySet().toArray(new Integer[history_data.size()]);
-            }
+            // TODO: GetHistoryTask.doInBackground()
+            history_data = null;
             return null;
         }
 
@@ -203,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super.onPostExecute(nothing);
             if (history_data != null) {
                 view_adapter.setCount(history_data.size());
-                b_year.setText(history_data.get(history_keys[0]).get(HistoryGetter.KEY_YEAR));
+                // TODO: Set the year
                 b_year.setVisibility(View.VISIBLE);
                 view_pager.setVisibility(View.VISIBLE);
             } else {
