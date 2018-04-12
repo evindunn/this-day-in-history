@@ -3,15 +3,13 @@ package com.emdevsite.todayhist.utils;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.GregorianCalendar;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 
@@ -20,8 +18,9 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
  * Various useful static methods
  */
 
-public final class NetworkUtils {
-    public static final URL BASE_HISTORY_URL = getBaseHistoryUrl();
+public class NetworkUtils {
+    private static final String DOMAIN = "history.muffinlabs.com";
+    private static final Uri BASE_HISTORY_URI = getBaseHistoryUri();
 
     /**
      * @param context The current Android context
@@ -41,12 +40,44 @@ public final class NetworkUtils {
     }
 
     @Nullable
-    private static URL getBaseHistoryUrl() {
+    public static URL getHistoryUrl() {
+        long today = DateUtils.getDate();
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(today);
+        Uri uri = BASE_HISTORY_URI.buildUpon()
+                .appendPath(String.valueOf(calendar.get(Calendar.MONTH)))
+                .appendPath(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)))
+                .build();
+
         try {
-            return new URL("http://history.muffinlabs.com");
+            return new URL(uri.toString());
         } catch (MalformedURLException e) {
             LogUtils.logError('w', NetworkUtils.class, e);
             return null;
         }
+    }
+
+    @Nullable
+    public static URL getHistoryUrl(long date) {
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(date);
+        Uri uri = BASE_HISTORY_URI.buildUpon()
+                .appendPath(String.valueOf(calendar.get(Calendar.MONTH)))
+                .appendPath(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)))
+                .build();
+
+        try {
+            return new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            LogUtils.logError('w', NetworkUtils.class, e);
+            return null;
+        }
+    }
+
+    private static Uri getBaseHistoryUri() {
+        return new Uri.Builder()
+                .scheme("http")
+                .authority(DOMAIN)
+                .build();
     }
 }

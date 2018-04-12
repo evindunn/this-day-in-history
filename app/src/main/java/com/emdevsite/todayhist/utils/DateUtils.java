@@ -5,11 +5,18 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class DateUtils {
 
     private static final String DATE_FMT = "EEE, MMMM dd";
+
+    public static long getMonth() {
+        return new GregorianCalendar().get(Calendar.MONTH);
+    }
+
+    public static long getDay() {
+        return new GregorianCalendar().get(Calendar.DAY_OF_MONTH);
+    }
 
     /**
      * @param month The 01-12 month
@@ -17,8 +24,12 @@ public class DateUtils {
      * @return The given day/month of this year in seconds since the epoch
      */
     public static long getDate(int month, int day) {
-        GregorianCalendar c = new GregorianCalendar(TimeZone.getDefault());
+        GregorianCalendar c = new GregorianCalendar();
         c.set(c.get(Calendar.YEAR), month, day);
+        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
         return c.getTimeInMillis();
     }
 
@@ -26,7 +37,11 @@ public class DateUtils {
      * @return Today as milliseconds since the epoch
      */
     public static long getDate() {
-        GregorianCalendar c = new GregorianCalendar(TimeZone.getDefault());
+        GregorianCalendar c = new GregorianCalendar();
+        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
         return c.getTimeInMillis();
     }
 

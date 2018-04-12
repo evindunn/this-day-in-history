@@ -24,22 +24,30 @@ import java.util.Scanner;
  */
 public class HistoryGetter {
     private static final String TAG = HistoryGetter.class.getSimpleName();
+    private static final String FIELD_BASE_DATA = "data";
+    private static final String FIELD_EVENT_ARRAY = "Events";
 
-    public static ContentValues[] asContentValues(URL url) {
+    public static ContentValues[] asContentValues(long month, long day) {
+        long date = DateUtils.getDate();
+        URL url = NetworkUtils.getHistoryUrl(date);
         String raw_data = pullRawData(url);
+
+        // Grab the array of "Event" json objects
         JSONArray events;
         try {
-            // TODO: Clean up hardcoded values
-            events = new JSONObject(raw_data).getJSONObject("data").getJSONArray("Events");
+            events = new JSONObject(raw_data)
+                    .getJSONObject(FIELD_BASE_DATA)
+                    .getJSONArray(FIELD_EVENT_ARRAY);
         } catch (JSONException e) {
             LogUtils.logError('w', HistoryGetter.class, e);
             return null;
         }
 
-        int date = DateUtils.getDateAsInt();
-        ArrayList<ContentValues> outputVals = new ArrayList<>(events.length());
+        //
 
-        for (int i = 0; i < events.length(); i++) {
+        ContentValues[] values = new ContentValues[events.length()];
+
+        for (int i = 0; i < values.length; i++) {
 
             ContentValues row = new ContentValues();
             String text;
@@ -57,14 +65,14 @@ public class HistoryGetter {
             row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
             row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
 
-            outputVals.add(row);
+            values[i] = row;
         }
 
-        if (outputVals.size() == 0) {
+        if (values.length == 0) {
             return null;
         }
 
-        return outputVals.toArray(new ContentValues[outputVals.size()]);
+        return values;
     }
 
     /**
