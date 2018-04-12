@@ -19,7 +19,7 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public final class Utils {
 
-    private static final DateFormat DATE_FORMAT_INT = new SimpleDateFormat("yyyyMMdd", Locale.US);
+    private static final DateFormat DATE_FORMAT_INT = new SimpleDateFormat("MMdd", Locale.US);
     private static final DateFormat DATE_FORMAT_STR = new SimpleDateFormat("E, MMMM dd", Locale.US);
 
     /**
@@ -50,7 +50,7 @@ public final class Utils {
     /**
      * @return Today's date as an integer, formatted yyyymmdd
      */
-    public static int getDateAsInt() {
+    public static int getMonthAndDayAsInt() {
         try { return Integer.valueOf(DATE_FORMAT_INT.format(Calendar.getInstance().getTime())); }
         catch (Exception e) {
             Utils.logError(Utils.class, e);

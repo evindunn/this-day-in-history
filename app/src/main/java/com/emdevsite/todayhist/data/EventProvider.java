@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+// TODO: This could use another look/cleanup
 public class EventProvider extends ContentProvider {
     private static final int URI_ALL = 0;
     private static final int URI_DATE = 1;
@@ -119,6 +120,30 @@ public class EventProvider extends ContentProvider {
                 throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
             }
         }
+    }
+
+    /**
+     * Inserts all given values into the table at the given uri
+     * @param uri content://com.emdevsite/data
+     * @param values The values to insert
+     * @return The number of rows inserted
+     */
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        int inserted = 0;
+        for (ContentValues vals : values) {
+            String date = vals.getAsString("date");
+            Uri newRowUri = EventDbHelper.BASE_CONTENT_URI.buildUpon()
+                    .appendPath(EventDbHelper.BASE_CONTENT_PATH)
+                    .appendPath(EventDbHelper.BY_DATE_PATH)
+                    .appendPath(date)
+                    .build();
+            // We don't have to check the ret val, insert() throws an exception if its not
+            // successful
+            insert(newRowUri, vals);
+            inserted++;
+        }
+        return inserted;
     }
 
     /**

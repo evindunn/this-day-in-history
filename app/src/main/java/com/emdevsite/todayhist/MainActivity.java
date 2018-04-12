@@ -1,7 +1,12 @@
 package com.emdevsite.todayhist;
 
 import android.app.AlertDialog;
+import android.app.LoaderManager;
+import android.content.AsyncTaskLoader;
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Loader;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,6 +25,7 @@ import android.widget.Toast;
 
 import com.emdevsite.todayhist.data.HistoryGetter;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.TreeMap;
 
