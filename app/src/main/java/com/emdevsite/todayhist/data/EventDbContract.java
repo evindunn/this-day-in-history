@@ -1,14 +1,6 @@
 package com.emdevsite.todayhist.data;
 
 import android.provider.BaseColumns;
-import android.util.Log;
-
-import com.emdevsite.todayhist.Utils;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
 
 /**
  * Created by edunn on 3/12/18.
