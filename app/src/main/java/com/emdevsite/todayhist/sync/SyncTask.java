@@ -9,15 +9,17 @@ import com.emdevsite.todayhist.data.HistoryGetter;
 import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
 
+import java.util.Calendar;
+
 public class SyncTask {
 
     synchronized public static void syncEvents(Context context) {
         try {
 
-            ContentValues[] values = HistoryGetter.asContentValues(
-                    DateUtils.getMonth(),
-                    DateUtils.getDay()
-            );
+            int month = DateUtils.getToday(Calendar.MONTH);
+            int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
+
+            ContentValues[] values = HistoryGetter.asContentValues(month, day);
 
             if (values != null && values.length > 0) {
                 ContentResolver resolver = context.getContentResolver();
@@ -26,7 +28,7 @@ public class SyncTask {
                 resolver.delete(
                         EventDbContract.EventTable.CONTENT_URI,
                         String.format("%s != ?", EventDbContract.EventTable.COLUMN_DATE),
-                        new String[] { String.valueOf(DateUtils.getDate()) }
+                        new String[] { String.valueOf(DateUtils.getTimestamp(month, day)) }
                 );
 
                 // Insert new data

@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 
@@ -41,29 +40,16 @@ public class NetworkUtils {
 
     @Nullable
     public static URL getHistoryUrl() {
-        long today = DateUtils.getDate();
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(today);
-        Uri uri = BASE_HISTORY_URI.buildUpon()
-                .appendPath(String.valueOf(calendar.get(Calendar.MONTH)))
-                .appendPath(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)))
-                .build();
-
-        try {
-            return new URL(uri.toString());
-        } catch (MalformedURLException e) {
-            LogUtils.logError('w', NetworkUtils.class, e);
-            return null;
-        }
+        int month = DateUtils.getToday(Calendar.MONTH);
+        int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
+        return getHistoryUrl(month, day);
     }
 
     @Nullable
-    public static URL getHistoryUrl(long date) {
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(date);
+    public static URL getHistoryUrl(int month, int day) {
         Uri uri = BASE_HISTORY_URI.buildUpon()
-                .appendPath(String.valueOf(calendar.get(Calendar.MONTH)))
-                .appendPath(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)))
+                .appendPath(String.valueOf(month))
+                .appendPath(String.valueOf(day))
                 .build();
 
         try {

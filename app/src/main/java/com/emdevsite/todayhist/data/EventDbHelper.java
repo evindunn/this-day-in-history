@@ -21,13 +21,20 @@ public class EventDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String CREATE_TABLE_FMT =
-                "CREATE TABLE %s(%s INTEGER AUTOINCREMENT PRIMARY KEY, %s INTEGER NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL);";
+                "CREATE TABLE %s(" +
+                    "%s INTEGER AUTOINCREMENT PRIMARY KEY, " +
+                    "%s INTEGER NOT NULL, " +
+                    "%s INTEGER NOT NULL, " +
+                    "%s TEXT NOT NULL, " +
+                    "%s TEXT NOT NULL" + "" +
+                    ");";
 
         final String CREATE_TBL = String.format(
             CREATE_TABLE_FMT,
             EventDbContract.EventTable.TABLE_NAME,
             EventDbContract.EventTable._ID,
-            EventDbContract.EventTable.COLUMN_DATE,
+            EventDbContract.EventTable.COLUMN_MONTH,
+            EventDbContract.EventTable.COLUMN_DAY,
             EventDbContract.EventTable.COLUMN_YEAR,
             EventDbContract.EventTable.COLUMN_TEXT
         );

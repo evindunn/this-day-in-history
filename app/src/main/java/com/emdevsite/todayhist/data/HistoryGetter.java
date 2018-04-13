@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Scanner;
 
 /**
@@ -27,9 +28,15 @@ public class HistoryGetter {
     private static final String FIELD_BASE_DATA = "data";
     private static final String FIELD_EVENT_ARRAY = "Events";
 
-    public static ContentValues[] asContentValues(long month, long day) {
-        long date = DateUtils.getDate();
-        URL url = NetworkUtils.getHistoryUrl(date);
+    public static ContentValues[] asContentValues() {
+        int month = DateUtils.getToday(Calendar.MONTH);
+        int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
+        return asContentValues(month, day);
+    }
+
+    public static ContentValues[] asContentValues(int month, int day) {
+        URL url = NetworkUtils.getHistoryUrl(month, day);
+        long timestamp = DateUtils.getTimestamp(month, day);
         String raw_data = pullRawData(url);
 
         // Grab the array of "Event" json objects
@@ -61,7 +68,7 @@ public class HistoryGetter {
                 continue;
             }
 
-            row.put(EventDbContract.EventTable.COLUMN_DATE, date);
+            row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
             row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
             row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
 
