@@ -47,4 +47,49 @@ public class LogUtils {
                 break;
         }
     }
+
+    /**
+     * Logs a message to the android console
+     * @param level The log level for the error
+     * @param cls The class that producted the message
+     * @param msg The messsage to log
+     */
+    public static void logMessage(char level, Class cls, String msg) {
+
+        // Log levels in descending order
+        switch (level) {
+            // Verbose
+            case 'v': {
+                Log.v(cls.getSimpleName(), msg);
+                break;
+            }
+
+            // Debug
+            case 'd': {
+                Log.d(cls.getSimpleName(), msg);
+                break;
+            }
+
+            // Info
+            case 'i': {
+                Log.i(cls.getSimpleName(), msg);
+                break;
+            }
+
+            // Warning
+            case 'w': {
+                Log.w(cls.getSimpleName(), msg);
+                break;
+            }
+
+            // Error
+            case 'e': {
+                Log.e(cls.getSimpleName(), msg);
+                break;
+            }
+
+            default:
+                break;
+        }
+    }
 }

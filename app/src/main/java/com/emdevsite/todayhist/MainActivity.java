@@ -8,12 +8,8 @@ import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,11 +17,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.emdevsite.todayhist.data.EventDbContract;
+import com.emdevsite.todayhist.data.EventDbHelper;
 import com.emdevsite.todayhist.sync.SyncUtils;
-import com.emdevsite.todayhist.utils.DateUtils;
-import com.emdevsite.todayhist.utils.LogUtils;
-
-import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -107,20 +100,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             case ID_LOADER_EVENTS: {
                 Uri events_uri = EventDbContract.EventTable.CONTENT_URI;
                 String sort_order = EventDbContract.EventTable.COLUMN_DATE + " DESC";
-                long timestamp = DateUtils.getTimestamp(
-                        DateUtils.getToday(Calendar.MONTH),
-                        DateUtils.getToday(Calendar.DAY_OF_MONTH)
-                );
-                String selection = String.format(
-                        "%s = %d",
-                        EventDbContract.EventTable.COLUMN_DATE,
-                        timestamp
-                );
 
                 return new CursorLoader(
                         this,
                         events_uri,
-                        DB_PROJECTION,
+                        EventDbHelper.EVENT_SELECTION,
                         null,
                         null,
                         sort_order
@@ -139,53 +123,5 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
-    }
-
-    /**
-     * Created by edunn on 2/27/18.
-     * Class for providing a new HistoryFragment to the user following a swipe
-     */
-
-    class HistoryViewAdapter extends FragmentStatePagerAdapter {
-        int count;
-        Cursor cursor;
-
-        HistoryViewAdapter(FragmentManager fm) {
-            super(fm);
-            cursor = null;
-            count = 0;
-        }
-
-        public void swapCursor(Cursor cursor) {
-            this.cursor = cursor;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public Fragment getItem(int i) {
-            Fragment fragment = new HistoryFragment();
-            try {
-                Bundle args = new Bundle();
-
-                cursor.moveToPosition(i);
-
-                int text_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
-                args.putString("text", cursor.getString(text_col));
-
-                fragment.setArguments(args);
-
-            } catch (Exception e) {
-                LogUtils.logError('w', getClass(), e);
-            }
-            return fragment;
-        }
-
-        @Override
-        public int getCount() {
-            if (cursor == null) {
-                return 0;
-            }
-            return cursor.getCount();
-        }
     }
 }

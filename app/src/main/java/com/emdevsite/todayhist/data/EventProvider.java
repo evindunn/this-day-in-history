@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.emdevsite.todayhist.utils.LogUtils;
 
@@ -100,33 +101,15 @@ public class EventProvider extends ContentProvider {
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
+        int inserted = 0;
         switch (sURI_MATCHER.match(uri)) {
             // Only accepted uri is the whole table
             case CODE_ALL: {
-                db.beginTransaction();
-                int inserted = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long id = db.insert(
-                                EventDbContract.EventTable.TABLE_NAME,
-                                null,
-                                value
-                        );
-
-                        if (id != -1) {
-                            inserted++;
-                        }
+                for (ContentValues value : values) {
+                    if (insert(uri, value) != null) {
+                        inserted++;
                     }
-
-                    db.setTransactionSuccessful();
-
-                } catch (Exception e) {
-                    LogUtils.logError('w', EventProvider.class, e);
-
-                } finally {
-                    db.endTransaction();
                 }
-
                 return inserted;
             }
 
@@ -190,7 +173,32 @@ public class EventProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        throw new RuntimeException("EventProvider.insert() isn't implemented yet");
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int match = sURI_MATCHER.match(uri);
+
+        db.beginTransaction();
+        switch (match) {
+            case CODE_ALL: {
+                long id = db.insert(
+                        EventDbContract.EventTable.TABLE_NAME,
+                        null,
+                        values
+                );
+
+                if (id == -1) {
+                    LogUtils.logMessage('w', getClass(), "Error inserting ContentValues into db");
+                    return null;
+                }
+
+                return EventDbContract.EventTable.buildUriWithDate(
+                        values.getAsInteger(EventDbContract.EventTable.COLUMN_DATE)
+                );
+            }
+
+            default: {
+                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
+            }
+        }
     }
 
     @Override

@@ -12,6 +12,11 @@ import android.net.Uri;
 public class EventDbHelper extends SQLiteOpenHelper {
 
     public static final String FILENAME = "events.db";
+    public static final String[] EVENT_SELECTION = {
+            EventDbContract.EventTable.COLUMN_YEAR,
+            EventDbContract.EventTable.COLUMN_TEXT
+    };
+
     private static final int VERSION = 1;   // Increment if db schema is changed
 
     public EventDbHelper(Context context) {
