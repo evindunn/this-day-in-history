@@ -31,8 +31,8 @@ public class HistoryFragment extends Fragment {
         Bundle args = getArguments();
 
         // TODO: Use strings.xml
-        if (args != null && args.containsKey(HistoryGetter.KEY_TEXT)) {
-            data_view.setText(args.getString(HistoryGetter.KEY_TEXT));
+        if (args != null && args.containsKey("text")) {
+            data_view.setText(args.getString("text"));
         }
 
         return root_view;

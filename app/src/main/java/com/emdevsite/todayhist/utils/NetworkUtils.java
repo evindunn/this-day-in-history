@@ -48,6 +48,7 @@ public class NetworkUtils {
     @Nullable
     public static URL getHistoryUrl(int month, int day) {
         Uri uri = BASE_HISTORY_URI.buildUpon()
+                .appendPath("date")
                 .appendPath(String.valueOf(month))
                 .appendPath(String.valueOf(day))
                 .build();

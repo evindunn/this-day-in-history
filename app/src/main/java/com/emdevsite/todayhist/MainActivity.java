@@ -1,7 +1,12 @@
 package com.emdevsite.todayhist;
 
 import android.app.AlertDialog;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
 import android.content.DialogInterface;
+import android.support.v4.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -12,20 +17,28 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
+import com.emdevsite.todayhist.data.EventDbContract;
+import com.emdevsite.todayhist.sync.SyncUtils;
 import com.emdevsite.todayhist.utils.DateUtils;
-import com.emdevsite.todayhist.utils.NetworkUtils;
+import com.emdevsite.todayhist.utils.LogUtils;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.Calendar;
+
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private ViewPager view_pager;
     private HistoryViewAdapter view_adapter;
     private Button b_year;
     private ProgressBar progress_bar;
+
+    private static final int ID_LOADER_EVENTS = 14;
+    private static final String[] DB_PROJECTION = new String[] {
+            EventDbContract.EventTable.COLUMN_YEAR,
+            EventDbContract.EventTable.COLUMN_TEXT
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         progress_bar = findViewById(R.id.progress_bar);
         b_year = findViewById(R.id.b_year);
 
-        // TODO: Set the year when page is swiped
         view_pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int i) {
@@ -47,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Toast.makeText(this, R.string.swipe_hint, Toast.LENGTH_LONG).show();
+        // TODO: Temporary for db testing
+        SyncUtils.syncNow(this);
+        getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
     }
 
     @Override
@@ -87,6 +101,46 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
+        switch (loader_id) {
+            case ID_LOADER_EVENTS: {
+                Uri events_uri = EventDbContract.EventTable.CONTENT_URI;
+                String sort_order = EventDbContract.EventTable.COLUMN_DATE + " DESC";
+                long timestamp = DateUtils.getTimestamp(
+                        DateUtils.getToday(Calendar.MONTH),
+                        DateUtils.getToday(Calendar.DAY_OF_MONTH)
+                );
+                String selection = String.format(
+                        "%s = %d",
+                        EventDbContract.EventTable.COLUMN_DATE,
+                        timestamp
+                );
+
+                return new CursorLoader(
+                        this,
+                        events_uri,
+                        DB_PROJECTION,
+                        null,
+                        null,
+                        sort_order
+                );
+            }
+            default:
+                throw new RuntimeException("Requested loader is not implemented");
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        view_adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
     /**
      * Created by edunn on 2/27/18.
      * Class for providing a new HistoryFragment to the user following a swipe
@@ -94,10 +148,17 @@ public class MainActivity extends AppCompatActivity {
 
     class HistoryViewAdapter extends FragmentStatePagerAdapter {
         int count;
+        Cursor cursor;
 
         HistoryViewAdapter(FragmentManager fm) {
             super(fm);
+            cursor = null;
             count = 0;
+        }
+
+        public void swapCursor(Cursor cursor) {
+            this.cursor = cursor;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -105,21 +166,26 @@ public class MainActivity extends AppCompatActivity {
             Fragment fragment = new HistoryFragment();
             try {
                 Bundle args = new Bundle();
-//                int key = history_keys[i];
-                // TODO: Put putString(event text) in fragment
+
+                cursor.moveToPosition(i);
+
+                int text_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
+                args.putString("text", cursor.getString(text_col));
+
                 fragment.setArguments(args);
+
             } catch (Exception e) {
-                Log.w(getLocalClassName(), String.format("%s: %s", e.getClass(), e.getMessage()));
+                LogUtils.logError('w', getClass(), e);
             }
             return fragment;
         }
 
         @Override
         public int getCount() {
-            return count;
-        }
-        void setCount(int count) {
-            this.count = count;
+            if (cursor == null) {
+                return 0;
+            }
+            return cursor.getCount();
         }
     }
 }
