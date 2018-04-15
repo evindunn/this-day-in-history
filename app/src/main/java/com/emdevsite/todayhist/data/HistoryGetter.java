@@ -29,11 +29,6 @@ public class HistoryGetter {
     private static final String FIELD_BASE_DATA = "data";
     private static final String FIELD_EVENT_ARRAY = "Events";
 
-    public static ContentValues[] asContentValues() {
-        long today = DateUtils.getTimestamp();
-        return asContentValues(today);
-    }
-
     @Nullable
     public static ContentValues[] asContentValues(long timestamp) {
         URL url = NetworkUtils.getHistoryUrl(timestamp);

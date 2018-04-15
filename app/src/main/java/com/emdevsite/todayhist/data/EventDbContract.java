@@ -30,7 +30,7 @@ public final class EventDbContract {
          * @param date The date in the form MMDD
          * @return A content uri for the given date
          */
-        public static Uri buildUriWithDate(int date) {
+        public static Uri buildUriWithDate(long date) {
             return CONTENT_URI.buildUpon().appendPath(String.valueOf(date)).build();
         }
     }

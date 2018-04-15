@@ -39,12 +39,6 @@ public class NetworkUtils {
     }
 
     @Nullable
-    public static URL getHistoryUrl() {
-        long timestamp = DateUtils.getTimestamp();
-        return getHistoryUrl(timestamp);
-    }
-
-    @Nullable
     public static URL getHistoryUrl(long timestamp) {
         int month = DateUtils.getFieldFromTimestamp(Calendar.MONTH, timestamp);
         int day = DateUtils.getFieldFromTimestamp(Calendar.DAY_OF_MONTH, timestamp);
@@ -55,6 +49,7 @@ public class NetworkUtils {
                 .build();
 
         try {
+            LogUtils.logMessage('i', NetworkUtils.class, uri.toString());
             return new URL(uri.toString());
         } catch (MalformedURLException e) {
             LogUtils.logError('w', NetworkUtils.class, e);

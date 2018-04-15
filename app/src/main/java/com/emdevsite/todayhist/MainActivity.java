@@ -13,19 +13,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.data.EventDbHelper;
 import com.emdevsite.todayhist.sync.SyncUtils;
+import com.emdevsite.todayhist.utils.DateUtils;
+import com.emdevsite.todayhist.utils.LogUtils;
+import com.emdevsite.todayhist.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private ViewPager view_pager;
-    private HistoryViewAdapter view_adapter;
-    private Button b_year;
-    private ProgressBar progress_bar;
+    private ViewPager mViewPager;
+    private HistoryViewAdapter mViewAdapter;
+    private Button mYearButton;
+    private ProgressBar mProgressBar;
 
     private static final int ID_LOADER_EVENTS = 14;
 
@@ -34,29 +38,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        view_pager = findViewById(R.id.view_pager);
-        view_adapter = new HistoryViewAdapter(getSupportFragmentManager());
-        view_pager.setAdapter(view_adapter);
+        mViewPager = findViewById(R.id.view_pager);
+        mViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
+        mViewPager.setAdapter(mViewAdapter);
 
-        progress_bar = findViewById(R.id.progress_bar);
-        b_year = findViewById(R.id.b_year);
+        mProgressBar = findViewById(R.id.progress_bar);
+        mYearButton = findViewById(R.id.b_year);
 
-        view_pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int i) {
                 super.onPageSelected(i);
+                Cursor cursor = mViewAdapter.getCursor();
+                cursor.moveToPosition(i);
+                int idx = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
+                mYearButton.setText(cursor.getString(idx));
             }
         });
 
         // TODO: Temporary for db testing
-        SyncUtils.syncNow(this);
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
     }
 
     @Override
@@ -67,57 +68,47 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.mi_license) {
-            // TODO: DialogFragment
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.license_content)
-                    .setNeutralButton(
-                            R.string.license_ok,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.dismiss();
-                                }
-                            }
-                    )
-                    .create()
-                    .show();
-        } else if (item.getItemId() == R.id.mi_refresh) {
-            // TODO: Refresh
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
         switch (loader_id) {
             case ID_LOADER_EVENTS: {
-                Uri events_uri = EventDbContract.EventTable.CONTENT_URI;
-                String sort_order = EventDbContract.EventTable.COLUMN_DATE + " DESC";
-
+                LogUtils.logMessage('i', getClass(), "Loading...");
+                showProgressBar(true);
                 return new CursorLoader(
                         this,
-                        events_uri,
-                        EventDbHelper.EVENT_SELECTION,
+                        EventDbContract.EventTable.CONTENT_URI,
                         null,
-                        null,
-                        sort_order
+                        String.format("%s = ?", EventDbContract.EventTable.COLUMN_DATE),
+                        new String[] { String.valueOf(DateUtils.getTimestamp()) },
+                        EventDbContract.EventTable.COLUMN_DATE + " DESC"
                 );
             }
-            default:
+            default: {
                 throw new RuntimeException("Requested loader is not implemented");
+            }
         }
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        view_adapter.swapCursor(data);
-    }
+    public void onLoaderReset(Loader<Cursor> loader) {}
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        showProgressBar(false);
+        if (data != null && data.getCount() > 0) {
+            LogUtils.logMessage('i', getClass(), "Load finished.");
+            mViewAdapter.swapCursor(data);
+        } else {
+            LogUtils.logMessage('i', getClass(), "Load returned no results.");
+        }
+    }
 
+    public void showProgressBar(boolean visible) {
+        if (visible) {
+            mViewPager.setVisibility(View.INVISIBLE);
+            mProgressBar.setVisibility(View.VISIBLE);
+        } else {
+            mProgressBar.setVisibility(View.INVISIBLE);
+            mViewPager.setVisibility(View.VISIBLE);
+        }
     }
 }

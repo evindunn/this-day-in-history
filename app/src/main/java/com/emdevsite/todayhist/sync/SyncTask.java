@@ -17,7 +17,6 @@ public class SyncTask {
         try {
 
             long today = DateUtils.getTimestamp();
-
             ContentValues[] values = HistoryGetter.asContentValues(today);
 
             if (values != null && values.length > 0) {
@@ -29,9 +28,11 @@ public class SyncTask {
                         String.format("%s != ?", EventDbContract.EventTable.COLUMN_DATE),
                         new String[] { String.valueOf(today) }
                 );
+                resolver.notifyChange(EventDbContract.EventTable.CONTENT_URI, null);
 
                 // Insert new data
                 resolver.bulkInsert(EventDbContract.EventTable.CONTENT_URI, values);
+                resolver.notifyChange(EventDbContract.EventTable.CONTENT_URI, null);
             }
         } catch (Exception e) {
             LogUtils.logError('w', SyncTask.class, e);

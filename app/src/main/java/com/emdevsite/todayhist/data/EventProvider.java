@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.emdevsite.todayhist.utils.LogUtils;
 
+//TODO: Clean up
 public class EventProvider extends ContentProvider {
     private static final int CODE_ALL = 0;
     private static final int CODE_DATE = 1;
@@ -73,7 +74,7 @@ public class EventProvider extends ContentProvider {
                 cursor = db.query(
                         EventDbContract.EventTable.TABLE_NAME,
                         projection,
-                        String.format(FMT_QUERY_SELECTION, "date"),
+                        String.format(FMT_QUERY_SELECTION, EventDbContract.EventTable.COLUMN_DATE),
                         new String[] { date },
                         null,
                         null,
@@ -99,8 +100,6 @@ public class EventProvider extends ContentProvider {
      */
     @Override
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         int inserted = 0;
         switch (sURI_MATCHER.match(uri)) {
             // Only accepted uri is the whole table
@@ -140,11 +139,17 @@ public class EventProvider extends ContentProvider {
                     selection = "1";
                 }
 
-                deleted = db.delete(
-                        EventDbContract.EventTable.TABLE_NAME,
-                        selection,
-                        selectionArgs
-                );
+                db.beginTransaction();
+                try {
+                    deleted = db.delete(
+                            EventDbContract.EventTable.TABLE_NAME,
+                            selection,
+                            selectionArgs
+                    );
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
 
                 break;
             }
@@ -175,24 +180,32 @@ public class EventProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         int match = sURI_MATCHER.match(uri);
+        Uri rUri;
 
-        db.beginTransaction();
         switch (match) {
             case CODE_ALL: {
-                long id = db.insert(
-                        EventDbContract.EventTable.TABLE_NAME,
-                        null,
-                        values
-                );
+                db.beginTransaction();
+                try {
+                    long id = db.insert(
+                            EventDbContract.EventTable.TABLE_NAME,
+                            null,
+                            values
+                    );
 
-                if (id == -1) {
-                    LogUtils.logMessage('w', getClass(), "Error inserting ContentValues into db");
-                    return null;
+                    if (id == -1) {
+                        LogUtils.logMessage('w', getClass(), "Error inserting ContentValues into db");
+                    }
+
+                    db.setTransactionSuccessful();
+                    rUri = EventDbContract.EventTable.buildUriWithDate(
+                            values.getAsLong(EventDbContract.EventTable.COLUMN_DATE)
+                    );
+                }
+                finally {
+                    db.endTransaction();
                 }
 
-                return EventDbContract.EventTable.buildUriWithDate(
-                        values.getAsInteger(EventDbContract.EventTable.COLUMN_DATE)
-                );
+                return rUri;
             }
 
             default: {

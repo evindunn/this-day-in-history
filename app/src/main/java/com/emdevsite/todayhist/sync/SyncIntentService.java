@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 
+import com.emdevsite.todayhist.utils.LogUtils;
+
 public class SyncIntentService extends IntentService {
 
     public SyncIntentService() {

@@ -16,13 +16,11 @@ import com.emdevsite.todayhist.utils.LogUtils;
  */
 
 public class HistoryViewAdapter extends FragmentStatePagerAdapter {
-    int count;
-    Cursor cursor;
+    private Cursor cursor;
 
     HistoryViewAdapter(FragmentManager fm) {
         super(fm);
         cursor = null;
-        count = 0;
     }
 
     public void swapCursor(Cursor cursor) {
@@ -55,5 +53,9 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
             return 0;
         }
         return cursor.getCount();
+    }
+
+    public Cursor getCursor() {
+        return cursor;
     }
 }
