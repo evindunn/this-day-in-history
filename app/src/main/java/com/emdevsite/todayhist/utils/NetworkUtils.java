@@ -40,13 +40,14 @@ public class NetworkUtils {
 
     @Nullable
     public static URL getHistoryUrl() {
-        int month = DateUtils.getToday(Calendar.MONTH);
-        int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
-        return getHistoryUrl(month, day);
+        long timestamp = DateUtils.getTimestamp();
+        return getHistoryUrl(timestamp);
     }
 
     @Nullable
-    public static URL getHistoryUrl(int month, int day) {
+    public static URL getHistoryUrl(long timestamp) {
+        int month = DateUtils.getFieldFromTimestamp(Calendar.MONTH, timestamp);
+        int day = DateUtils.getFieldFromTimestamp(Calendar.DAY_OF_MONTH, timestamp);
         Uri uri = BASE_HISTORY_URI.buildUpon()
                 .appendPath("date")
                 .appendPath(String.valueOf(month))

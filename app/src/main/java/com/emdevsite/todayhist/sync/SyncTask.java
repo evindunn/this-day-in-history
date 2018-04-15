@@ -16,10 +16,9 @@ public class SyncTask {
     synchronized public static void syncEvents(Context context) {
         try {
 
-            int month = DateUtils.getToday(Calendar.MONTH);
-            int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
+            long today = DateUtils.getTimestamp();
 
-            ContentValues[] values = HistoryGetter.asContentValues(month, day);
+            ContentValues[] values = HistoryGetter.asContentValues(today);
 
             if (values != null && values.length > 0) {
                 ContentResolver resolver = context.getContentResolver();
@@ -28,7 +27,7 @@ public class SyncTask {
                 resolver.delete(
                         EventDbContract.EventTable.CONTENT_URI,
                         String.format("%s != ?", EventDbContract.EventTable.COLUMN_DATE),
-                        new String[] { String.valueOf(DateUtils.getTimestamp(month, day)) }
+                        new String[] { String.valueOf(today) }
                 );
 
                 // Insert new data

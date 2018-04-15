@@ -28,10 +28,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ProgressBar progress_bar;
 
     private static final int ID_LOADER_EVENTS = 14;
-    private static final String[] DB_PROJECTION = new String[] {
-            EventDbContract.EventTable.COLUMN_YEAR,
-            EventDbContract.EventTable.COLUMN_TEXT
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

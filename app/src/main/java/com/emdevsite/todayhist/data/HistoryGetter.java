@@ -1,6 +1,7 @@
 package com.emdevsite.todayhist.data;
 
 import android.content.ContentValues;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.emdevsite.todayhist.utils.DateUtils;
@@ -29,14 +30,13 @@ public class HistoryGetter {
     private static final String FIELD_EVENT_ARRAY = "Events";
 
     public static ContentValues[] asContentValues() {
-        int month = DateUtils.getToday(Calendar.MONTH);
-        int day = DateUtils.getToday(Calendar.DAY_OF_MONTH);
-        return asContentValues(month, day);
+        long today = DateUtils.getTimestamp();
+        return asContentValues(today);
     }
 
-    public static ContentValues[] asContentValues(int month, int day) {
-        URL url = NetworkUtils.getHistoryUrl(month, day);
-        long timestamp = DateUtils.getTimestamp(month, day);
+    @Nullable
+    public static ContentValues[] asContentValues(long timestamp) {
+        URL url = NetworkUtils.getHistoryUrl(timestamp);
         String raw_data = pullRawData(url);
 
         // Grab the array of "Event" json objects
