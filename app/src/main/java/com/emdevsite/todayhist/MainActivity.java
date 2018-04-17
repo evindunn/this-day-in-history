@@ -50,11 +50,6 @@ public class MainActivity extends AppCompatActivity implements
 
         mHistoryViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
         mHistoryViewPager.setAdapter(mHistoryViewAdapter);
-        mHistoryViewPager.setClipToPadding(false);
-
-        int vp_padding = dpToPixel(getResources().getDimension(R.dimen.dimen_view_pager_padding));
-        mHistoryViewPager.setPadding(vp_padding, vp_padding, vp_padding, vp_padding);
-        mHistoryViewPager.setPageMargin(dpToPixel(8));
 
         initAnimation();
 

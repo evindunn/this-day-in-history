@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="dimen_arrow_padding">48dp</dimen>
-    <dimen name="dimen_view_pager_padding">8dp</dimen>
+    <dimen name="dimen_view_pager_padding">16dp</dimen>
+    <dimen name="dimen_view_pager_margin">8dp</dimen>
     <dimen name="dimen_history_text_view_padding_horiz">16dp</dimen>
 
     <!-- [view pager padding] * 3 -->
