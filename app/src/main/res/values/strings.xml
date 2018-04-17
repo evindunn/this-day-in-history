@@ -16,9 +16,7 @@
         https://creativecommons.org/licenses/by-sa/3.0/us/legalcode.
     </string>
 
-    <string name="swipe_hint">
-        Swipe to change the year
-    </string>
+    <string name="swipe_hint">Swipe</string>
 
     <string name="json_event_key" translatable="false">Events</string>
     <string name="json_data_key" translatable="false">data</string>
