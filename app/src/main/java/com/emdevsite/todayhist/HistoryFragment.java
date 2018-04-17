@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.data.HistoryGetter;
 
 import java.util.Calendar;
@@ -20,6 +21,8 @@ import java.util.Locale;
  * Fragment for displaying history event data
  */
 public class HistoryFragment extends Fragment {
+    private String year;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -31,10 +34,15 @@ public class HistoryFragment extends Fragment {
         Bundle args = getArguments();
 
         // TODO: Use strings.xml
-        if (args != null && args.containsKey("text")) {
-            data_view.setText(args.getString("text"));
+        if (args != null &&
+                args.containsKey(EventDbContract.EventTable.COLUMN_TEXT) &&
+                args.containsKey(EventDbContract.EventTable.COLUMN_YEAR)) {
+            year = args.getString(EventDbContract.EventTable.COLUMN_YEAR);
+            data_view.setText(args.getString(EventDbContract.EventTable.COLUMN_TEXT));
         }
 
         return root_view;
     }
+
+    public String getYear() { return year; }
 }

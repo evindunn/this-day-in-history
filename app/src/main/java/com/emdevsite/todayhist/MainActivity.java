@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.data.EventDbHelper;
@@ -30,7 +31,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ViewPager mViewPager;
     private HistoryViewAdapter mViewAdapter;
     private ProgressBar mProgressBar;
-    private NumberPicker mNumberPicker;
 
     private static final int ID_LOADER_EVENTS = 14;
 
@@ -44,13 +44,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mViewPager.setAdapter(mViewAdapter);
 
         mProgressBar = findViewById(R.id.progress_bar);
-        mNumberPicker = findViewById(R.id.year_picker);
 
+        final TextView mYearView = findViewById(R.id.year_picker);
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                mNumberPicker.setValue(position);
+                mYearView.setText(((HistoryFragment) mViewAdapter.getItem(position)).getYear());
             }
         });
 
@@ -95,24 +95,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (data != null && data.getCount() > 0) {
             LogUtils.logMessage('i', getClass(), "Load finished.");
             mViewAdapter.swapCursor(data);
-
-            String[] years = new String[data.getCount()];
-            for (int i = 0; i < data.getCount(); i++) {
-                data.moveToPosition(i);
-                    int year_idx = data.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
-                    String syear = data.getString(year_idx);
-                    years[i] = syear;
-            }
-
-            mNumberPicker.setMinValue(0);
-            mNumberPicker.setMaxValue(years.length - 1);
-            mNumberPicker.setDisplayedValues(years);
-            mNumberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-                @Override
-                public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                    mViewPager.setCurrentItem(newVal);
-                }
-            });
 
         } else {
             LogUtils.logMessage('i', getClass(), "Load returned no results.");
