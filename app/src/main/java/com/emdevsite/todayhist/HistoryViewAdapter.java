@@ -39,7 +39,10 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
 
             cursor.moveToPosition(i);
 
+            int year_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
             int text_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
+
+            args.putString(EventDbContract.EventTable.COLUMN_YEAR, cursor.getString(year_col));
             args.putString(EventDbContract.EventTable.COLUMN_TEXT, cursor.getString(text_col));
 
             fragment.setArguments(args);

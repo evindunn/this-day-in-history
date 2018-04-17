@@ -1,5 +1,6 @@
 package com.emdevsite.todayhist;
 
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ProgressBar;
 
 import com.emdevsite.todayhist.data.EventDbContract;
@@ -19,12 +21,8 @@ import com.emdevsite.todayhist.utils.LogUtils;
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    private ViewPager mYearViewPager;
-    private YearViewAdapter mYearViewAdapter;
-
     private ViewPager mHistoryViewPager;
     private HistoryViewAdapter mHistoryViewAdapter;
-
     private ProgressBar mProgressBar;
 
     private static final int ID_LOADER_EVENTS = 14;
@@ -34,20 +32,11 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mYearViewPager = findViewById(R.id.vp_year);
         mHistoryViewPager = findViewById(R.id.vp_text);
         mProgressBar = findViewById(R.id.progress_bar);
 
-        mYearViewAdapter = new YearViewAdapter(getSupportFragmentManager());
         mHistoryViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
-
         mHistoryViewPager.setAdapter(mHistoryViewAdapter);
-        mYearViewPager.setAdapter(mYearViewAdapter);
-
-        PageChangeListener listener = new PageChangeListener();
-
-        mYearViewPager.addOnPageChangeListener(listener);
-        mHistoryViewPager.addOnPageChangeListener(listener);
 
         // TODO: Temporary for db testing
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
@@ -90,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements
         if (data != null && data.getCount() > 0) {
             LogUtils.logMessage('i', getClass(), "Load finished.");
             mHistoryViewAdapter.swapCursor(data);
-            mYearViewAdapter.swapCursor(data);
         } else {
             LogUtils.logMessage('i', getClass(), "Load returned no results.");
         }
@@ -98,21 +86,11 @@ public class MainActivity extends AppCompatActivity implements
 
     public void showProgressBar(boolean visible) {
         if (visible) {
-            mYearViewPager.setVisibility(View.INVISIBLE);
             mHistoryViewPager.setVisibility(View.INVISIBLE);
             mProgressBar.setVisibility(View.VISIBLE);
         } else {
             mProgressBar.setVisibility(View.INVISIBLE);
             mHistoryViewPager.setVisibility(View.VISIBLE);
-            mYearViewPager.setVisibility(View.VISIBLE);
-        }
-    }
-
-    private class PageChangeListener extends ViewPager.SimpleOnPageChangeListener {
-        @Override
-        public void onPageSelected(int position) {
-            mYearViewPager.setCurrentItem(position, true);
-            mHistoryViewPager.setCurrentItem(position, true);
         }
     }
 }

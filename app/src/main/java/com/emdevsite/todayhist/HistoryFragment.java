@@ -29,15 +29,18 @@ public class HistoryFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View root_view = inflater.inflate(R.layout.fragment_history, container, false);
-        TextView data_view = root_view.findViewById(R.id.tv_history);
-        Bundle args = getArguments();
 
-        // TODO: Use strings.xml
+        TextView year_view = root_view.findViewById(R.id.tv_year);
+        TextView data_view = root_view.findViewById(R.id.tv_history);
+
+        Bundle args = getArguments();
         if (args != null &&
-                args.containsKey(EventDbContract.EventTable.COLUMN_TEXT)) {
+                args.containsKey(EventDbContract.EventTable.COLUMN_TEXT) &&
+                args.containsKey(EventDbContract.EventTable.COLUMN_YEAR)) {
+
+            year_view.setText(args.getString(EventDbContract.EventTable.COLUMN_YEAR));
             data_view.setText(args.getString(EventDbContract.EventTable.COLUMN_TEXT));
         }
-
         return root_view;
     }
 }
