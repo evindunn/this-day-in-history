@@ -2,9 +2,14 @@ package com.emdevsite.todayhist;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.emdevsite.todayhist.HistoryFragment;
 import com.emdevsite.todayhist.data.EventDbContract;
@@ -36,8 +41,11 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
 
             cursor.moveToPosition(i);
 
+            int year_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
             int text_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
-            args.putString("text", cursor.getString(text_col));
+
+            args.putString(EventDbContract.EventTable.COLUMN_YEAR, cursor.getString(year_col));
+            args.putString(EventDbContract.EventTable.COLUMN_TEXT, cursor.getString(text_col));
 
             fragment.setArguments(args);
 
