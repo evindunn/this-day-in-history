@@ -2,6 +2,7 @@ package com.emdevsite.todayhist;
 
 import android.animation.ValueAnimator;
 import android.content.res.Resources;
+import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -22,6 +23,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.emdevsite.todayhist.data.EventDbContract;
+import com.emdevsite.todayhist.databinding.ActivityMainBinding;
 import com.emdevsite.todayhist.sync.SyncUtils;
 import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
@@ -29,31 +31,23 @@ import com.emdevsite.todayhist.utils.LogUtils;
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         ValueAnimator.AnimatorUpdateListener {
-
-    private ViewPager mHistoryViewPager;
+    
     private HistoryViewAdapter mHistoryViewAdapter;
-    private ProgressBar mProgressBar;
-
     private ValueAnimator mAlphaAnimation;
-    private ImageView mArrowLeft;
-    private ImageView mArrowRight;
-    private TextView mSwipeTextView;
+    private ActivityMainBinding mActivityData;
 
     private static final int ID_LOADER_EVENTS = 14;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mHistoryViewPager = findViewById(R.id.vp_text);
-        mProgressBar = findViewById(R.id.progress_bar);
+        mActivityData = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         mHistoryViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
-        mHistoryViewPager.setAdapter(mHistoryViewAdapter);
+        mActivityData.vpText.setAdapter(mHistoryViewAdapter);
 
         // For swipe hinting
-        mHistoryViewPager.setPageMargin(
+        mActivityData.vpText.setPageMargin(
                 -getResources().getDimensionPixelSize(R.dimen.dimen_view_pager_margin)
         );
 
@@ -64,11 +58,11 @@ public class MainActivity extends AppCompatActivity implements
 
     public void showProgressBar(boolean visible) {
         if (visible) {
-            mHistoryViewPager.setVisibility(View.INVISIBLE);
-            mProgressBar.setVisibility(View.VISIBLE);
+            mActivityData.vpText.setVisibility(View.INVISIBLE);
+            mActivityData.progressBar.setVisibility(View.VISIBLE);
         } else {
-            mProgressBar.setVisibility(View.GONE);
-            mHistoryViewPager.setVisibility(View.VISIBLE);
+            mActivityData.progressBar.setVisibility(View.GONE);
+            mActivityData.vpText.setVisibility(View.VISIBLE);
         }
     }
 
@@ -133,18 +127,14 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         float v = (float) animation.getAnimatedValue();
-        mArrowLeft.setAlpha(v);
-        mArrowRight.setAlpha(v);
-        mSwipeTextView.setAlpha(v);
+        mActivityData.ivLeft.setAlpha(v);
+        mActivityData.ivRight.setAlpha(v);
+        mActivityData.tvSwipeHint.setAlpha(v);
     }
 
     private void initAnimation() {
         final int TIME_ANIMATION = 2000;
         final int REPEAT_ANIMATION = 7;
-
-        mArrowLeft = findViewById(R.id.iv_left);
-        mArrowRight = findViewById(R.id.iv_right);
-        mSwipeTextView = findViewById(R.id.tv_swipe_hint);
 
         mAlphaAnimation = ValueAnimator.ofFloat(0f, 1f);
         mAlphaAnimation.setDuration(TIME_ANIMATION);
