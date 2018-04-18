@@ -8,13 +8,19 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class DateUtils {
-    private static final String DATE_FMT = "EEE, MMMM dd";
+    private static final String DATE_FMT = "EEEE, MMMM dd";
 
-    public static String getTimestampAsString(int month, int day) {
+    public static String getTimestampAsString() {
+        long timestamp = getTimestamp();
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_FMT, Locale.getDefault());
-        long timestamp = getTimestamp(month, day);
+        calendar.setTimeInMillis(timestamp);
+        return formatter.format(calendar.getTime());
+    }
 
+    public static String getTimestampAsString(long timestamp) {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_FMT, Locale.getDefault());
         calendar.setTimeInMillis(timestamp);
         return formatter.format(calendar.getTime());
     }

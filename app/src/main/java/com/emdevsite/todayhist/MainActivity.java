@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        getSupportActionBar().setTitle(DateUtils.getTimestampAsString());
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
             LogUtils.logMessage('i', getClass(), "Load finished.");
