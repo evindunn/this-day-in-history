@@ -2,9 +2,9 @@
 <resources>
     <dimen name="dimen_arrow_padding">48dp</dimen>
     <dimen name="dimen_view_pager_padding">16dp</dimen>
-    <dimen name="dimen_view_pager_margin">8dp</dimen>
-    <dimen name="dimen_history_text_view_padding_horiz">16dp</dimen>
+    <dimen name="dimen_view_pager_margin">16dp</dimen>
+    <dimen name="dimen_text_view_padding_horiz">16dp</dimen>
 
     <!-- [view pager padding] * 3 -->
-    <dimen name="dimen_swipe_text_view_margin_bottom">32dp</dimen>
+    <dimen name="dimen_swipe_text_view_margin_bottom">48dp</dimen>
 </resources>

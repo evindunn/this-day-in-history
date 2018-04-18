@@ -2,6 +2,7 @@ package com.emdevsite.todayhist;
 
 import android.animation.ValueAnimator;
 import android.content.res.Resources;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -51,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements
         mHistoryViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
         mHistoryViewPager.setAdapter(mHistoryViewAdapter);
 
+        // For swipe hinting
+        mHistoryViewPager.setPageMargin(
+                -getResources().getDimensionPixelSize(R.dimen.dimen_view_pager_margin)
+        );
+
         initAnimation();
 
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    @NonNull
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
         switch (loader_id) {
             case ID_LOADER_EVENTS: {
@@ -109,10 +116,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {}
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {}
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
             LogUtils.logMessage('i', getClass(), "Load finished.");
@@ -143,10 +150,5 @@ public class MainActivity extends AppCompatActivity implements
         mAlphaAnimation.setRepeatCount(REPEAT_ANIMATION);
         mAlphaAnimation.setRepeatMode(ValueAnimator.REVERSE);
         mAlphaAnimation.addUpdateListener(this);
-    }
-
-    private int dpToPixel(float dp) {
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        return Math.round(dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 }
