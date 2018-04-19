@@ -15,7 +15,6 @@ import com.emdevsite.todayhist.utils.LogUtils;
 //TODO: Clean up
 public class EventProvider extends ContentProvider {
     private static final int CODE_ALL = 0;
-    private static final int CODE_DATE = 1;
     private static final String FMT_QUERY_SELECTION = "%s = ?";
     private static final String FMT_URI_ERR = "Invalid URI: %s";
 
@@ -64,21 +63,9 @@ public class EventProvider extends ContentProvider {
                         null,
                         EventDbContract.EventTable.COLUMN_DATE
                 );
-                break;
-            }
-
-            // Rows with a specific date
-            case CODE_DATE: {
-                SQLiteDatabase db = mDbHelper.getReadableDatabase();
-                String date = uri.getLastPathSegment();
-                cursor = db.query(
-                        EventDbContract.EventTable.TABLE_NAME,
-                        projection,
-                        String.format(FMT_QUERY_SELECTION, EventDbContract.EventTable.COLUMN_DATE),
-                        new String[] { date },
-                        null,
-                        null,
-                        EventDbContract.EventTable.COLUMN_DATE
+                cursor.setNotificationUri(
+                        getContext().getContentResolver(),
+                        EventDbContract.EventTable.CONTENT_URI
                 );
                 break;
             }
@@ -186,6 +173,28 @@ public class EventProvider extends ContentProvider {
             case CODE_ALL: {
                 db.beginTransaction();
                 try {
+                    Cursor sameYear = db.query(
+                            EventDbContract.EventTable.TABLE_NAME,
+                            null,
+                            String.format(FMT_QUERY_SELECTION, EventDbContract.EventTable.COLUMN_YEAR),
+                            new String[] { values.getAsString(EventDbContract.EventTable.COLUMN_YEAR) },
+                            null,
+                            null,
+                            EventDbContract.EventTable.COLUMN_DATE
+                    );
+
+                    if (sameYear.getCount() > 0) {
+                        sameYear.moveToFirst();
+                        int textIdx = sameYear.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
+                        String oldText = sameYear.getString(textIdx);
+                        String newText = String.format(
+                                "%s\n\n%s",
+                                oldText,
+                                values.getAsString(EventDbContract.EventTable.COLUMN_TEXT)
+                        );
+                        values.put(EventDbContract.EventTable.COLUMN_TEXT, newText);
+                    }
+
                     long id = db.insert(
                             EventDbContract.EventTable.TABLE_NAME,
                             null,
@@ -227,11 +236,6 @@ public class EventProvider extends ContentProvider {
     private static UriMatcher buildUriMatcher() {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         matcher.addURI(EventDbContract.AUTHORITY, EventDbContract.PATH_DATE, CODE_ALL);
-        matcher.addURI(
-                EventDbContract.AUTHORITY,
-                EventDbContract.PATH_DATE + "/#",
-                CODE_DATE
-        );
         return matcher;
     }
 }

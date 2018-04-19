@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
         switch (loader_id) {
             case ID_LOADER_EVENTS: {
-                LogUtils.logMessage('i', getClass(), "Loading...");
+                LogUtils.logMessage('d', getClass(), "Loading...");
                 showProgressBar(true);
                 return new CursorLoader(
                         this,
@@ -110,17 +110,19 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {}
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+        mHistoryViewAdapter.swapCursor(null);
+    }
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         getSupportActionBar().setTitle(DateUtils.getTimestampAsString());
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
-            LogUtils.logMessage('i', getClass(), "Load finished.");
             mHistoryViewAdapter.swapCursor(data);
+            LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {
-            LogUtils.logMessage('i', getClass(), "Load returned no results.");
+            LogUtils.logMessage('d', getClass(), "Load returned no results.");
         }
     }
 
