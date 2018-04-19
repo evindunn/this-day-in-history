@@ -29,7 +29,7 @@ public class EventProvider extends ContentProvider {
     /**
      * Queries the database. Only URI is used, with its format dictating
      * query params
-     * @param uri content://com.emdevsite.todayhist/data/[selection]/[selection arg]
+     * @param uri content://com.emdevsite.todayhist/data
      * @param projection unused
      * @param selection unused
      * @param selectionArgs unused
