@@ -1,8 +1,10 @@
 package com.emdevsite.todayhist;
 
 import android.animation.ValueAnimator;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -68,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onResume() {
-        // TODO: Temporary for db testing
         SyncUtils.syncNow(this);
         mAlphaAnimation.start();
         super.onResume();
@@ -116,10 +117,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        getSupportActionBar().setTitle(DateUtils.getTimestampAsString());
+        long lastUpdate = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getLong(EventDbContract.EventTable.COLUMN_DATE, DateUtils.getTimestamp());
+        getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
+
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
             mHistoryViewAdapter.swapCursor(data);
+            mActivityData.vpText.setCurrentItem(0, true);
             LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {
             LogUtils.logMessage('d', getClass(), "Load returned no results.");

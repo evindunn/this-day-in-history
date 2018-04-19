@@ -63,6 +63,12 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
         return cursor.getCount();
     }
 
+    @Override
+    public int getItemPosition(@NonNull Object object) {
+        // Fragements should always be updated when notifyDatasetChanged() is called
+        return POSITION_NONE;
+    }
+
     public Cursor getCursor() {
         return cursor;
     }

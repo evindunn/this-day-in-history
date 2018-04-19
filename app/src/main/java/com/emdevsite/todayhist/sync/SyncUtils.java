@@ -3,6 +3,8 @@ package com.emdevsite.todayhist.sync;
 import android.content.Context;
 import android.content.Intent;
 
+import com.emdevsite.todayhist.utils.DateUtils;
+
 public class SyncUtils {
 
     /**
@@ -13,4 +15,5 @@ public class SyncUtils {
         Intent immediateSync = new Intent(context, SyncIntentService.class);
         context.startService(immediateSync);
     }
+
 }

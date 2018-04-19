@@ -12,7 +12,6 @@ import android.util.Log;
 
 import com.emdevsite.todayhist.utils.LogUtils;
 
-//TODO: Clean up
 public class EventProvider extends ContentProvider {
     private static final int CODE_ALL = 0;
     private static final String FMT_QUERY_SELECTION = "%s = ?";
@@ -75,7 +74,6 @@ public class EventProvider extends ContentProvider {
             }
         }
 
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -167,12 +165,12 @@ public class EventProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         int match = sURI_MATCHER.match(uri);
-        Uri rUri;
 
         switch (match) {
             case CODE_ALL: {
                 db.beginTransaction();
                 try {
+                    // TODO: Move this to update()
                     Cursor sameYear = db.query(
                             EventDbContract.EventTable.TABLE_NAME,
                             null,
@@ -203,18 +201,20 @@ public class EventProvider extends ContentProvider {
 
                     if (id == -1) {
                         LogUtils.logMessage('w', getClass(), "Error inserting ContentValues into db");
+                    } else {
+                        getContext().getContentResolver().notifyChange(
+                                EventDbContract.EventTable.CONTENT_URI,
+                                null
+                        );
                     }
 
                     db.setTransactionSuccessful();
-                    rUri = EventDbContract.EventTable.buildUriWithDate(
-                            values.getAsLong(EventDbContract.EventTable.COLUMN_DATE)
-                    );
                 }
                 finally {
                     db.endTransaction();
                 }
 
-                return rUri;
+                return uri;
             }
 
             default: {
