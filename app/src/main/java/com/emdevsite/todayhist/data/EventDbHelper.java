@@ -11,24 +11,26 @@ import java.util.Locale;
  * Low-level management of the event database
  */
 public class EventDbHelper extends SQLiteOpenHelper {
-    private static final int VERSION = 1;   // Increment if db schema is changed
+    private static final int VERSION = 3;   // Increment if db schema is changed
     private static final String FILENAME = "events.db";
     private static final String SQL_DELETE_TBL = String.format(
             "DROP TABLE IF EXISTS %s",
             EventDbContract.EventTable.TABLE_NAME
     );
     private static final String SQL_CREATE_TBL = String.format(
-            "CREATE TABLE %s(" +
+        "CREATE TABLE %s(" +
             "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "%s INTEGER NOT NULL, " +
             "%s TEXT UNIQUE NOT NULL, " +
+            "%s TEXT NOT NULL, " +
             "%s TEXT NOT NULL" +
-            ");",
-            EventDbContract.EventTable.TABLE_NAME,
-            EventDbContract.EventTable._ID,
-            EventDbContract.EventTable.COLUMN_DATE,
-            EventDbContract.EventTable.COLUMN_YEAR,
-            EventDbContract.EventTable.COLUMN_TEXT
+        ");",
+        EventDbContract.EventTable.TABLE_NAME,
+        EventDbContract.EventTable._ID,
+        EventDbContract.EventTable.COLUMN_DATE,
+        EventDbContract.EventTable.COLUMN_YEAR,
+        EventDbContract.EventTable.COLUMN_TEXT,
+        EventDbContract.EventTable.COLUMN_URL
     );
 
     EventDbHelper(Context context) {

@@ -28,6 +28,10 @@ public class HistoryGetter {
     private static final String TAG = HistoryGetter.class.getSimpleName();
     private static final String FIELD_BASE_DATA = "data";
     private static final String FIELD_EVENT_ARRAY = "Events";
+    private static final String FIELD_YEAR = "year";
+    private static final String FIELD_TEXT = "text";
+    private static final String FIELD_URL_ARRAY = "links";
+    private static final String FIELD_URL = "link";
 
     @Nullable
     public static ContentValues[] asContentValues(long timestamp) {
@@ -54,10 +58,25 @@ public class HistoryGetter {
             ContentValues row = new ContentValues();
             String text;
             String year;
+            String sUrl;
 
             try {
-                text = events.getJSONObject(i).getString("text");
-                year = events.getJSONObject(i).getString("year");
+                // Grab event year and text
+                year = events.getJSONObject(i).getString(FIELD_YEAR);
+                text = events.getJSONObject(i).getString(FIELD_TEXT);
+
+                // Build array of links for the event
+                JSONArray links = events.getJSONObject(i).getJSONArray(FIELD_URL_ARRAY);
+                StringBuilder sBuilder = new StringBuilder();
+                for (int j = 0; j < links.length(); j++) {
+                    sBuilder.append(links.getJSONObject(j).getString(FIELD_URL));
+                    if (j < links.length() - 1) {
+                        sBuilder.append(";");
+                    }
+                }
+
+                sUrl = sBuilder.toString();
+
             } catch (JSONException e) {
                 LogUtils.logError('w', HistoryGetter.class, e);
                 continue;
@@ -66,6 +85,7 @@ public class HistoryGetter {
             row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
             row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
             row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
+            row.put(EventDbContract.EventTable.COLUMN_URL, sUrl);
 
             values[i] = row;
         }

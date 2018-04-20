@@ -14,6 +14,8 @@ import com.emdevsite.todayhist.utils.LogUtils;
 
 public class EventProvider extends ContentProvider {
     private static final int CODE_ALL = 0;
+    private static final int CODE_ROW = 1;
+
     private static final String FMT_QUERY_SELECTION = "%s = ?";
     private static final String FMT_URI_ERR = "Invalid URI: %s";
 
@@ -77,30 +79,69 @@ public class EventProvider extends ContentProvider {
         return cursor;
     }
 
-    /**
-     * Inserts all given values into the table at the given uri
-     * @param uri content://com.emdevsite/date
-     * @param values The values to insert
-     * @return The number of rows inserted
-     */
+    @Nullable
     @Override
-    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
-        int inserted = 0;
-        switch (sURI_MATCHER.match(uri)) {
-            // Only accepted uri is the whole table
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int match = sURI_MATCHER.match(uri);
+        long id = -1;
+
+        switch (match) {
             case CODE_ALL: {
-                for (ContentValues value : values) {
-                    if (insert(uri, value) != null) {
-                        inserted++;
+                db.beginTransaction();
+                try {
+                    // Replace if there's a conflict
+                    // TODO: Update
+                    id = db.insertWithOnConflict(
+                        EventDbContract.EventTable.TABLE_NAME,
+                        null,
+                        values,
+                        SQLiteDatabase.CONFLICT_REPLACE
+                    );
+
+                    if (id == -1) {
+                        LogUtils.logMessage(
+                            'w',
+                            getClass(),
+                            "Error inserting ContentValues into db"
+                        );
+                    } else {
+                        db.setTransactionSuccessful();
                     }
                 }
-                return inserted;
+                finally {
+                    db.endTransaction();
+                }
+
+                break;
             }
 
             default: {
-                return super.bulkInsert(uri, values);
+                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
             }
         }
+
+        if (id == -1) { return null; }
+
+        getContext().getContentResolver().notifyChange(
+            EventDbContract.EventTable.CONTENT_URI,
+            null
+        );
+
+        return uri.buildUpon()
+            .appendPath(EventDbContract.PATH_ROW)
+            .appendPath(String.valueOf(id))
+            .build();
+    }
+
+    @Override
+    public int update(
+        @NonNull Uri uri,
+        @Nullable ContentValues values,
+        @Nullable String selection,
+        @Nullable String[] selectionArgs) {
+
+        throw new RuntimeException("EventProvider.update() isn't implemented yet");
     }
 
     /**
@@ -151,6 +192,32 @@ public class EventProvider extends ContentProvider {
     }
 
     /**
+     * Inserts all given values into the table at the given uri
+     * @param uri content://com.emdevsite/date
+     * @param values The values to insert
+     * @return The number of rows inserted
+     */
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        int inserted = 0;
+        switch (sURI_MATCHER.match(uri)) {
+            // Only accepted uri is the whole table
+            case CODE_ALL: {
+                for (ContentValues value : values) {
+                    if (insert(uri, value) != null) {
+                        inserted++;
+                    }
+                }
+                return inserted;
+            }
+
+            default: {
+                return super.bulkInsert(uri, values);
+            }
+        }
+    }
+
+    /**
      * @param uri The Uri for the requested data
      * @return The MIME type for the data at the given uri
      */
@@ -160,82 +227,14 @@ public class EventProvider extends ContentProvider {
         throw new RuntimeException("EventProvider.getType() isn't implemented yet");
     }
 
-    @Nullable
-    @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        int match = sURI_MATCHER.match(uri);
-
-        switch (match) {
-            case CODE_ALL: {
-                db.beginTransaction();
-                try {
-                    // TODO: Move this to update()
-                    Cursor sameYear = db.query(
-                            EventDbContract.EventTable.TABLE_NAME,
-                            null,
-                            String.format(FMT_QUERY_SELECTION, EventDbContract.EventTable.COLUMN_YEAR),
-                            new String[] { values.getAsString(EventDbContract.EventTable.COLUMN_YEAR) },
-                            null,
-                            null,
-                            EventDbContract.EventTable.COLUMN_DATE
-                    );
-
-                    if (sameYear.getCount() > 0) {
-                        sameYear.moveToFirst();
-                        int textIdx = sameYear.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
-                        String oldText = sameYear.getString(textIdx);
-                        String newText = String.format(
-                                "%s\n\n%s",
-                                oldText,
-                                values.getAsString(EventDbContract.EventTable.COLUMN_TEXT)
-                        );
-                        values.put(EventDbContract.EventTable.COLUMN_TEXT, newText);
-                    }
-
-                    long id = db.insert(
-                            EventDbContract.EventTable.TABLE_NAME,
-                            null,
-                            values
-                    );
-
-                    if (id == -1) {
-                        LogUtils.logMessage('w', getClass(), "Error inserting ContentValues into db");
-                    } else {
-                        getContext().getContentResolver().notifyChange(
-                                EventDbContract.EventTable.CONTENT_URI,
-                                null
-                        );
-                    }
-
-                    db.setTransactionSuccessful();
-                }
-                finally {
-                    db.endTransaction();
-                }
-
-                return uri;
-            }
-
-            default: {
-                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
-            }
-        }
-    }
-
-    @Override
-    public int update(
-            @NonNull Uri uri,
-            @Nullable ContentValues values,
-            @Nullable String selection,
-            @Nullable String[] selectionArgs) {
-
-        throw new RuntimeException("EventProvider.update() isn't implemented yet");
-    }
-
     private static UriMatcher buildUriMatcher() {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
-        matcher.addURI(EventDbContract.AUTHORITY, EventDbContract.PATH_DATE, CODE_ALL);
+        matcher.addURI(EventDbContract.AUTHORITY, EventDbContract.PATH_DATA, CODE_ALL);
+        matcher.addURI(
+            EventDbContract.AUTHORITY,
+            String.format("%s/%s/#", EventDbContract.PATH_DATA, EventDbContract.PATH_ROW),
+            CODE_ROW
+        );
         return matcher;
     }
 }
