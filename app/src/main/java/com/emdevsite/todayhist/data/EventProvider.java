@@ -141,7 +141,71 @@ public class EventProvider extends ContentProvider {
         @Nullable String selection,
         @Nullable String[] selectionArgs) {
 
-        throw new RuntimeException("EventProvider.update() isn't implemented yet");
+        int updated = 0;
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        String newText = values.getAsString(EventDbContract.EventTable.COLUMN_TEXT);
+        String newUrls = values.getAsString(EventDbContract.EventTable.COLUMN_URL);
+
+        Cursor oldVals = query(
+            uri,
+            new String[] {
+                EventDbContract.EventTable.COLUMN_TEXT,
+                EventDbContract.EventTable.COLUMN_URL
+            },
+            selection,
+            selectionArgs,
+            null
+        );
+
+        if (oldVals == null || oldVals.getCount() == 0) {
+            return 0;
+        }
+
+        StringBuilder sBuilderText = new StringBuilder(newText);
+        StringBuilder sBuilderUrl = new StringBuilder(newUrls);
+
+        if (oldVals.moveToFirst()) {
+            int textIdx = oldVals.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
+            int urlIdx = oldVals.getColumnIndex(EventDbContract.EventTable.COLUMN_URL);
+
+            while (!oldVals.isAfterLast()) {
+                String oldText = oldVals.getString(textIdx);
+                String oldUrls = oldVals.getString(urlIdx);
+
+                sBuilderText.append("\n\n");
+                sBuilderText.append(oldText);
+
+                sBuilderUrl.append(";");
+                sBuilderUrl.append(oldUrls);
+            }
+
+            values.put(EventDbContract.EventTable.COLUMN_TEXT, sBuilderText.toString());
+            values.put(EventDbContract.EventTable.COLUMN_URL, sBuilderUrl.toString());
+
+            db.beginTransaction();
+            try {
+                updated = db.update(
+                    EventDbContract.EventTable.TABLE_NAME,
+                    values,
+                    selection,
+                    selectionArgs
+                );
+
+                if (updated > 0) {
+                    db.setTransactionSuccessful();
+                }
+
+            } finally {
+                oldVals.close();
+                db.endTransaction();
+            }
+        }
+
+        if (updated > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return updated;
     }
 
     /**
