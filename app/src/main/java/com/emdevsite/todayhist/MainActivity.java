@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         long lastUpdate = PreferenceManager
                 .getDefaultSharedPreferences(this)
-                .getLong(EventDbContract.EventTable.COLUMN_DATE, DateUtils.getTimestamp());
+                .getLong(getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp());
         getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
 
         showProgressBar(false);

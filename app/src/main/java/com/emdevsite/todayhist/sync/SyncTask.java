@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LogWriter;
 
+import com.emdevsite.todayhist.R;
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.data.HistoryGetter;
 import com.emdevsite.todayhist.utils.DateUtils;
@@ -22,7 +23,7 @@ public class SyncTask {
             // Skip if already synced today
             long today = DateUtils.getTimestamp();
             long lastUpdate = PreferenceManager.getDefaultSharedPreferences(context)
-                    .getLong(EventDbContract.EventTable.COLUMN_DATE, -1);
+                    .getLong(context.getString(R.string.prefs_key_lastUpdate), -1);
             if (lastUpdate == today) {
                 LogUtils.logMessage('d', SyncTask.class, "Already synced today, skipping");
                 return;
@@ -60,8 +61,10 @@ public class SyncTask {
                 // Log the update time
                 PreferenceManager.getDefaultSharedPreferences(context)
                         .edit()
-                        .putLong(EventDbContract.EventTable.COLUMN_DATE, DateUtils.getTimestamp())
-                        .apply();
+                        .putLong(
+                            context.getString(R.string.prefs_key_lastUpdate),
+                            DateUtils.getTimestamp()
+                        ).apply();
             }
         } catch (Exception e) {
             LogUtils.logError('w', SyncTask.class, e);

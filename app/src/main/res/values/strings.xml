@@ -22,4 +22,6 @@
     <string name="json_data_key" translatable="false">data</string>
     <string name="json_event_year_key" translatable="false">year</string>
     <string name="json_event_text_key" translatable="false">text</string>
+
+    <string name="prefs_key_lastUpdate" translatable="false">lastUpdate</string>
 </resources>
