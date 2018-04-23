@@ -29,6 +29,9 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
     }
 
     public void swapCursor(Cursor cursor) {
+        if (this.cursor != null) {
+            this.cursor.close();
+        }
         this.cursor = cursor;
         notifyDataSetChanged();
     }

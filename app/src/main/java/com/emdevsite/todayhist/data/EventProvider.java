@@ -51,15 +51,14 @@ public class EventProvider extends ContentProvider {
         Cursor cursor;
 
         switch (match) {
-
             // Whole table
             case CODE_ALL: {
                 SQLiteDatabase db = mDbHelper.getReadableDatabase();
                 cursor = db.query(
                         EventDbContract.EventTable.TABLE_NAME,
                         projection,
-                        null,
-                        null,
+                        selection,
+                        selectionArgs,
                         null,
                         null,
                         EventDbContract.EventTable.COLUMN_DATE
@@ -84,14 +83,13 @@ public class EventProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         int match = sURI_MATCHER.match(uri);
-        long id = -1;
+        long id;
 
         switch (match) {
             case CODE_ALL: {
                 db.beginTransaction();
                 try {
                     // Replace if there's a conflict
-                    // TODO: Update
                     id = db.insertWithOnConflict(
                         EventDbContract.EventTable.TABLE_NAME,
                         null,
@@ -140,72 +138,7 @@ public class EventProvider extends ContentProvider {
         @Nullable ContentValues values,
         @Nullable String selection,
         @Nullable String[] selectionArgs) {
-
-        int updated = 0;
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        String newText = values.getAsString(EventDbContract.EventTable.COLUMN_TEXT);
-        String newUrls = values.getAsString(EventDbContract.EventTable.COLUMN_URL);
-
-        Cursor oldVals = query(
-            uri,
-            new String[] {
-                EventDbContract.EventTable.COLUMN_TEXT,
-                EventDbContract.EventTable.COLUMN_URL
-            },
-            selection,
-            selectionArgs,
-            null
-        );
-
-        if (oldVals == null || oldVals.getCount() == 0) {
-            return 0;
-        }
-
-        StringBuilder sBuilderText = new StringBuilder(newText);
-        StringBuilder sBuilderUrl = new StringBuilder(newUrls);
-
-        if (oldVals.moveToFirst()) {
-            int textIdx = oldVals.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
-            int urlIdx = oldVals.getColumnIndex(EventDbContract.EventTable.COLUMN_URL);
-
-            while (!oldVals.isAfterLast()) {
-                String oldText = oldVals.getString(textIdx);
-                String oldUrls = oldVals.getString(urlIdx);
-
-                sBuilderText.append("\n\n");
-                sBuilderText.append(oldText);
-
-                sBuilderUrl.append(";");
-                sBuilderUrl.append(oldUrls);
-            }
-
-            values.put(EventDbContract.EventTable.COLUMN_TEXT, sBuilderText.toString());
-            values.put(EventDbContract.EventTable.COLUMN_URL, sBuilderUrl.toString());
-
-            db.beginTransaction();
-            try {
-                updated = db.update(
-                    EventDbContract.EventTable.TABLE_NAME,
-                    values,
-                    selection,
-                    selectionArgs
-                );
-
-                if (updated > 0) {
-                    db.setTransactionSuccessful();
-                }
-
-            } finally {
-                oldVals.close();
-                db.endTransaction();
-            }
-        }
-
-        if (updated > 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
-
-        return updated;
+        throw new RuntimeException("update() is not implemented");
     }
 
     /**
@@ -268,7 +201,8 @@ public class EventProvider extends ContentProvider {
             // Only accepted uri is the whole table
             case CODE_ALL: {
                 for (ContentValues value : values) {
-                    if (insert(uri, value) != null) {
+                    Uri uriInserted = insert(uri, value);
+                    if (uriInserted != null) {
                         inserted++;
                     }
                 }

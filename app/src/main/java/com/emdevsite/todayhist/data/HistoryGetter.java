@@ -51,9 +51,9 @@ public class HistoryGetter {
 
         //
 
-        ContentValues[] values = new ContentValues[events.length()];
+        ArrayList<ContentValues> values = new ArrayList<>();
 
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < events.length(); i++) {
 
             ContentValues row = new ContentValues();
             String text;
@@ -82,19 +82,33 @@ public class HistoryGetter {
                 continue;
             }
 
-            row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
-            row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
-            row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
-            row.put(EventDbContract.EventTable.COLUMN_URL, sUrl);
+            boolean replaced = false;
+            for (int k = 0; k < values.size(); k++) {
+                ContentValues oldVals = values.get(k);
+                if (oldVals.getAsString(EventDbContract.EventTable.COLUMN_YEAR).equals(year)) {
+                    String oldText = oldVals.getAsString(EventDbContract.EventTable.COLUMN_TEXT);
+                    oldVals.put(
+                        EventDbContract.EventTable.COLUMN_TEXT,
+                        String.format("%s\n\n%s", oldText, text));
+                    replaced = true;
+                    break;
+                }
+            }
 
-            values[i] = row;
+            if (!replaced) {
+                row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
+                row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
+                row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
+                row.put(EventDbContract.EventTable.COLUMN_URL, sUrl);
+                values.add(row);
+            }
         }
 
-        if (values.length == 0) {
+        if (values.size() == 0) {
             return null;
         }
 
-        return values;
+        return values.toArray(new ContentValues[values.size()]);
     }
 
     /**
