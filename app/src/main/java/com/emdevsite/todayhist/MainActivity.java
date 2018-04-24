@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements
                         null,
                         String.format("%s = ?", EventDbContract.EventTable.COLUMN_DATE),
                         new String[] { String.valueOf(DateUtils.getTimestamp()) },
-                        EventDbContract.EventTable.COLUMN_DATE
+                        EventDbContract.EventTable.COLUMN_YEAR + " DESC"
                 );
             }
             default: {
@@ -117,15 +117,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        long lastUpdate = PreferenceManager
-                .getDefaultSharedPreferences(this)
-                .getLong(getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp());
-        getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
-
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
+            long lastUpdate = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getLong(getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp());
+            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
+
             mHistoryViewAdapter.swapCursor(data);
-            mActivityData.vpText.setCurrentItem(0, true);
             LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {
             LogUtils.logMessage('d', getClass(), "Load returned no results.");

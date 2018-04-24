@@ -29,9 +29,6 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
     }
 
     public void swapCursor(Cursor cursor) {
-        if (this.cursor != null) {
-            this.cursor.close();
-        }
         this.cursor = cursor;
         notifyDataSetChanged();
     }
@@ -41,7 +38,6 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
         Fragment fragment = new HistoryFragment();
         try {
             Bundle args = new Bundle();
-
             cursor.moveToPosition(i);
 
             int year_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
@@ -68,11 +64,7 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getItemPosition(@NonNull Object object) {
-        // Fragements should always be updated when notifyDatasetChanged() is called
+        // Fragements should always be rebuilt when notifyDatasetChanged() is called
         return POSITION_NONE;
-    }
-
-    public Cursor getCursor() {
-        return cursor;
     }
 }
