@@ -14,17 +14,6 @@ public class DateUtils {
     private static final String DATE_FMT = "EEEE, MMMM dd";
 
     /**
-     * @return Today's date as a formatted string
-     */
-    public static String getTimestampAsString() {
-        long timestamp = getTimestamp();
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_FMT, Locale.getDefault());
-        calendar.setTimeInMillis(timestamp);
-        return formatter.format(calendar.getTime());
-    }
-
-    /**
      * @param timestamp The requested date
      * @return Formatted string representation of the requested date
      */

@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.emdevsite.todayhist.utils.LogUtils;
 
@@ -61,12 +60,19 @@ public class EventProvider extends ContentProvider {
                         selectionArgs,
                         null,
                         null,
-                        EventDbContract.EventTable.COLUMN_DATE
+                        EventDbContract.EventTable.COLUMN_TIMESTAMP
                 );
                 cursor.setNotificationUri(
                         getContext().getContentResolver(),
-                        EventDbContract.EventTable.CONTENT_URI
+                        uri
                 );
+
+                LogUtils.logMessage(
+                    'd',
+                    getClass(),
+                    "Queried db and returned cursor of size " + cursor.getCount()
+                );
+
                 break;
             }
 
@@ -78,67 +84,52 @@ public class EventProvider extends ContentProvider {
         return cursor;
     }
 
-    @Nullable
+    /**
+     * Inserts all given values into the table at the given uri
+     * @param uri content://com.emdevsite/date
+     * @param values The values to insert
+     * @return The number of rows inserted
+     */
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        int inserted = 0;
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        int match = sURI_MATCHER.match(uri);
-        long id;
-
-        switch (match) {
+        switch (sURI_MATCHER.match(uri)) {
+            // Only accepted uri is the whole table
             case CODE_ALL: {
                 db.beginTransaction();
                 try {
-                    // Replace if there's a conflict
-                    id = db.insertWithOnConflict(
-                        EventDbContract.EventTable.TABLE_NAME,
-                        null,
-                        values,
-                        SQLiteDatabase.CONFLICT_REPLACE
-                    );
-
-                    if (id == -1) {
-                        LogUtils.logMessage(
-                            'w',
-                            getClass(),
-                            "Error inserting ContentValues into db"
+                    for (ContentValues value : values) {
+                        long id = db.insertWithOnConflict(
+                            EventDbContract.EventTable.TABLE_NAME,
+                            null,
+                            value,
+                            SQLiteDatabase.CONFLICT_REPLACE
                         );
-                    } else {
-                        db.setTransactionSuccessful();
+                        if (id != -1) {
+                            inserted++;
+                        }
                     }
-                }
-                finally {
+                    db.setTransactionSuccessful();
+
+                } catch (Exception e) {
+                    LogUtils.logMessage('w', getClass(), "Error inserting values into db");
+                    LogUtils.logError('w', getClass(), e);
+
+                } finally {
                     db.endTransaction();
                 }
 
-                break;
+                if (inserted > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+                return inserted;
             }
 
             default: {
-                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
+                return super.bulkInsert(uri, values);
             }
         }
-
-        if (id == -1) { return null; }
-
-        getContext().getContentResolver().notifyChange(
-            EventDbContract.EventTable.CONTENT_URI,
-            null
-        );
-
-        return uri.buildUpon()
-            .appendPath(EventDbContract.PATH_ROW)
-            .appendPath(String.valueOf(id))
-            .build();
-    }
-
-    @Override
-    public int update(
-        @NonNull Uri uri,
-        @Nullable ContentValues values,
-        @Nullable String selection,
-        @Nullable String[] selectionArgs) {
-        throw new RuntimeException("update() is not implemented");
     }
 
     /**
@@ -154,7 +145,7 @@ public class EventProvider extends ContentProvider {
         int deleted;
         switch (match) {
             case CODE_ALL: {
-                SQLiteDatabase db = mDbHelper.getReadableDatabase();
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
                 // If we pass null, it'll delete all the rows, but won't return the number of
                 // rows by default; If we pass "1" it'll do both
@@ -165,11 +156,15 @@ public class EventProvider extends ContentProvider {
                 db.beginTransaction();
                 try {
                     deleted = db.delete(
-                            EventDbContract.EventTable.TABLE_NAME,
-                            selection,
-                            selectionArgs
+                        EventDbContract.EventTable.TABLE_NAME,
+                        selection,
+                        selectionArgs
                     );
                     db.setTransactionSuccessful();
+
+                    if (deleted > 0) {
+                        getContext().getContentResolver().notifyChange(uri, null);
+                    }
                 } finally {
                     db.endTransaction();
                 }
@@ -182,37 +177,22 @@ public class EventProvider extends ContentProvider {
             }
         }
 
-        if (deleted != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
         return deleted;
     }
 
-    /**
-     * Inserts all given values into the table at the given uri
-     * @param uri content://com.emdevsite/date
-     * @param values The values to insert
-     * @return The number of rows inserted
-     */
+    @Nullable
     @Override
-    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
-        int inserted = 0;
-        switch (sURI_MATCHER.match(uri)) {
-            // Only accepted uri is the whole table
-            case CODE_ALL: {
-                for (ContentValues value : values) {
-                    Uri uriInserted = insert(uri, value);
-                    if (uriInserted != null) {
-                        inserted++;
-                    }
-                }
-                return inserted;
-            }
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+        throw new RuntimeException("insert() is not implemented");
+    }
 
-            default: {
-                return super.bulkInsert(uri, values);
-            }
-        }
+    @Override
+    public int update(
+        @NonNull Uri uri,
+        @Nullable ContentValues values,
+        @Nullable String selection,
+        @Nullable String[] selectionArgs) {
+        throw new RuntimeException("update() is not implemented");
     }
 
     /**

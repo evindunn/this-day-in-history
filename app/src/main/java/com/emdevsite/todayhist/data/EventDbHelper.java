@@ -4,14 +4,12 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.util.Locale;
-
 /**
  * Created by edunn on 3/12/18.
  * Low-level management of the event database
  */
 public class EventDbHelper extends SQLiteOpenHelper {
-    private static final int VERSION = 3;   // Increment if db schema is changed
+    private static final int VERSION = 4;   // Increment if db schema is changed
     private static final String FILENAME = "events.db";
     private static final String SQL_DELETE_TBL = String.format(
             "DROP TABLE IF EXISTS %s",
@@ -27,7 +25,7 @@ public class EventDbHelper extends SQLiteOpenHelper {
         ");",
         EventDbContract.EventTable.TABLE_NAME,
         EventDbContract.EventTable._ID,
-        EventDbContract.EventTable.COLUMN_DATE,
+        EventDbContract.EventTable.COLUMN_TIMESTAMP,
         EventDbContract.EventTable.COLUMN_YEAR,
         EventDbContract.EventTable.COLUMN_TEXT,
         EventDbContract.EventTable.COLUMN_URL

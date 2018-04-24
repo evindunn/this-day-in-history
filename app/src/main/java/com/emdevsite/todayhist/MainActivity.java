@@ -1,28 +1,18 @@
 package com.emdevsite.todayhist;
 
 import android.animation.ValueAnimator;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.databinding.ActivityMainBinding;
@@ -54,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements
         );
 
         initAnimation();
-
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
     }
 
@@ -99,9 +88,9 @@ public class MainActivity extends AppCompatActivity implements
                         this,
                         EventDbContract.EventTable.CONTENT_URI,
                         null,
-                        String.format("%s = ?", EventDbContract.EventTable.COLUMN_DATE),
-                        new String[] { String.valueOf(DateUtils.getTimestamp()) },
-                        EventDbContract.EventTable.COLUMN_YEAR + " DESC"
+                        null,
+                        null,
+                        EventDbContract.EventTable.COLUMN_YEAR
                 );
             }
             default: {
@@ -111,24 +100,26 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-        mHistoryViewAdapter.swapCursor(null);
-    }
-
-    @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
             long lastUpdate = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getLong(getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp());
-            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
 
+            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
             mHistoryViewAdapter.swapCursor(data);
+            mActivityData.vpText.setCurrentItem(data.getCount() / 2, true);
+
             LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {
             LogUtils.logMessage('d', getClass(), "Load returned no results.");
         }
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+        mHistoryViewAdapter.swapCursor(null);
     }
 
     @Override

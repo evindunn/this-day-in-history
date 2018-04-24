@@ -23,7 +23,7 @@ public final class EventDbContract {
                 .build();
 
         public static final String TABLE_NAME = "events";
-        public static final String COLUMN_DATE = "date";
+        public static final String COLUMN_TIMESTAMP = "timestamp";
         public static final String COLUMN_YEAR = "year";
         public static final String COLUMN_TEXT = "text";
         public static final String COLUMN_URL = "url";

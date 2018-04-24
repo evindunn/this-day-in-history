@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
 import com.emdevsite.todayhist.utils.NetworkUtils;
 
@@ -16,7 +15,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Scanner;
 
 /**
@@ -96,7 +94,7 @@ public class HistoryGetter {
             }
 
             if (!replaced) {
-                row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
+                row.put(EventDbContract.EventTable.COLUMN_TIMESTAMP, timestamp);
                 row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
                 row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
                 row.put(EventDbContract.EventTable.COLUMN_URL, sUrl);
