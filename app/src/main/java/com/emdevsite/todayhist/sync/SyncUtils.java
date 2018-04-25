@@ -18,11 +18,7 @@ import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 
 public class SyncUtils {
-    private static final String SYNC_TAG = "com.emdevsite.todayhist.todayhist-sync";
-
-    // Once every 5-6 mins
-    private static final int SYNC_INTERVAL_SECONDS = 60;
-    private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS * 2;
+    private static final String CLEAN_TAG = "com.emdevsite.todayhist.JOB-CLEAN";
 
     // Once every 3-4 days
     private static final int CLEAN_INTERVAL_SECONDS = 3600 * 24 * 3;
@@ -34,9 +30,6 @@ public class SyncUtils {
     public static void initialize(final Context context) {
         if (sInitialized) { return; }
         sInitialized = true;
-
-        // Schedule recurring sync
-        scheduleSync(context);
 
         // Schedule recurring clean
         scheduleClean(context);
@@ -70,31 +63,18 @@ public class SyncUtils {
         checkDb.start();
     }
 
-    public static void scheduleSync(@NonNull final Context context) {
-        Driver driver = new GooglePlayDriver(context);
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
 
-        Job eventSyncJob = dispatcher.newJobBuilder()
-            .setService(EventFirebaseSyncService.class)
-            .setTag(SYNC_TAG)
-            .setLifetime(Lifetime.FOREVER)
-            .setRecurring(true)
-            .setTrigger(Trigger.executionWindow(SYNC_INTERVAL_SECONDS, SYNC_FLEXTIME_SECONDS))
-            .setReplaceCurrent(true)
-            .build();
-
-        dispatcher.schedule(eventSyncJob);
-        LogUtils.logMessage('d', SyncUtils.class, "Recurring sync scheduled");
-    }
-
+    /**
+     * Schedules db cleaning for the given context
+     * @param context
+     */
     public static void scheduleClean(@NonNull final Context context) {
         Driver driver = new GooglePlayDriver(context);
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
 
         Job eventSyncJob = dispatcher.newJobBuilder()
             .setService(EventFirebaseCleanService.class)
-            .setTag(SYNC_TAG)
-            .setConstraints(Constraint.ON_ANY_NETWORK)
+            .setTag(CLEAN_TAG)
             .setLifetime(Lifetime.FOREVER)
             .setRecurring(true)
             .setTrigger(Trigger.executionWindow(CLEAN_INTERVAL_SECONDS, CLEAN_INTERVAL_FLEX))

@@ -32,6 +32,10 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final int ID_LOADER_EVENTS = 14;
 
+    /**
+     * Creates a new MainActivity for This Day in History
+     * @param savedInstanceState Saved instance of last usage of the app, if any
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +54,9 @@ public class MainActivity extends AppCompatActivity implements
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
     }
 
+    /**
+     * @param visible Whether to hide the main view and show the "loading" progress bar
+     */
     public void showProgressBar(boolean visible) {
         if (visible) {
             mActivityData.vpText.setVisibility(View.INVISIBLE);
@@ -60,18 +67,37 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * Play the animation hint whenever user resumes the app
+     */
     @Override
     protected void onResume() {
         mAlphaAnimation.start();
         super.onResume();
     }
 
+    /**
+     * Cancel the animation hint if the app loses focus
+     */
+    @Override
+    protected void onPause() {
+        mAlphaAnimation.cancel();
+        super.onPause();
+    }
+
+    /**
+     * Release all resources associated with the animation hint
+     */
     @Override
     protected void onDestroy() {
         mAlphaAnimation.removeAllUpdateListeners();
         super.onDestroy();
     }
 
+    /**
+     * @param menu The menu object to inflate
+     * @return Whether config of menu was successful
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -79,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
+    /**
+     * @param item The selected menu item (Refresh or License)
+     * @return Whether selection was successful
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.mi_refresh) {
@@ -88,6 +118,12 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Creates/reinitializes our db loader
+     * @param loader_id ID of the loader to init
+     * @param args Any startup args (unused)
+     * @return A CursorLoader with our db query results
+     */
     @Override
     @NonNull
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
@@ -114,6 +150,11 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * Called when data has finished loading. Should populate views.
+     * @param loader The CursorLoader returned by onCreateLoader()
+     * @param data The data from our db
+     */
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         showProgressBar(false);
@@ -126,11 +167,19 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * Invalidates our view data when loader is reset
+     * @param loader The loader to reset
+     */
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         mHistoryViewAdapter.swapCursor(null);
     }
 
+    /**
+     * Steps to perform when animation is updated
+     * @param animation The swipe hint animation that is triggered
+     */
     @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         float v = (float) animation.getAnimatedValue();
@@ -139,6 +188,9 @@ public class MainActivity extends AppCompatActivity implements
         mActivityData.tvSwipeHint.setAlpha(v);
     }
 
+    /**
+     * Helper method that initializes our swipe hint animation, called in onCreate()
+     */
     private void initAnimation() {
         final int TIME_ANIMATION = 2000;
         final int REPEAT_ANIMATION = 7;
