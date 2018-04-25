@@ -18,12 +18,6 @@ public class SyncTask {
     synchronized public static void syncEvents(Context context) {
         try {
             long today = DateUtils.getTimestamp();
-            long lastUpdate = LogUtils.getLastUpdate(context);
-
-            if (lastUpdate == today) {
-                LogUtils.logMessage('d', SyncTask.class, "Already synced today, skipping");
-                return;
-            }
 
             // Get today's events from server
             ContentValues[] values = HistoryGetter.asContentValues(today);
@@ -37,7 +31,11 @@ public class SyncTask {
                 LogUtils.logMessage(
                         'd',
                         SyncTask.class,
-                        String.format("Added %d new db entries", inserted)
+                        String.format(
+                            "Added %d new db entries for %s",
+                            inserted,
+                            DateUtils.getTimestampAsString(today)
+                        )
                 );
             }
         } catch (Exception e) {

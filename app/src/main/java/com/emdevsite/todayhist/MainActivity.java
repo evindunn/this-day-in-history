@@ -9,9 +9,11 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.emdevsite.todayhist.data.EventDbContract;
@@ -48,25 +50,6 @@ public class MainActivity extends AppCompatActivity implements
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(
-            getString(R.string.prefs_key_pagerPos),
-            mActivityData.vpText.getCurrentItem()
-        );
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        String key = getString(R.string.prefs_key_pagerPos);
-        if (savedInstanceState.containsKey(key)) {
-            int pos = savedInstanceState.getInt(key);
-            mActivityData.vpText.setCurrentItem(pos);
-        }
-    }
-
     public void showProgressBar(boolean visible) {
         if (visible) {
             mActivityData.vpText.setVisibility(View.INVISIBLE);
@@ -97,6 +80,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.mi_refresh) {
+            showProgressBar(true);
+            SyncUtils.syncNow(this);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     @NonNull
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
         switch (loader_id) {
@@ -106,10 +98,14 @@ public class MainActivity extends AppCompatActivity implements
                 return new CursorLoader(
                         this,
                         EventDbContract.EventTable.CONTENT_URI,
-                        null,
-                        String.format("%s = ?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
+                        new String[] {
+                            EventDbContract.EventTable.COLUMN_YEAR,
+                            EventDbContract.EventTable.COLUMN_TEXT,
+                            EventDbContract.EventTable.COLUMN_TIMESTAMP
+                        },
+                        String.format("%s=?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
                         new String[] { String.valueOf(DateUtils.getTimestamp()) },
-                        EventDbContract.EventTable.COLUMN_YEAR + " ASC"
+                        EventDbContract.EventTable.COLUMN_YEAR + " DESC"
                 );
             }
             default: {
@@ -122,13 +118,8 @@ public class MainActivity extends AppCompatActivity implements
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
-            int timeStampColumn = data.getColumnIndex(EventDbContract.EventTable.COLUMN_TIMESTAMP);
-            data.moveToFirst();
-            long timestamp = data.getLong(timeStampColumn);
-
-            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(timestamp));
             mHistoryViewAdapter.swapCursor(data);
-
+            mActivityData.vpText.setCurrentItem(0, true);
             LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {
             LogUtils.logMessage('d', getClass(), "Load returned no results.");
