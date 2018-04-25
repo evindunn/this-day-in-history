@@ -11,7 +11,7 @@ import java.util.Locale;
  * Assorted utilities for manipulation of dates/timestamps
  */
 public class DateUtils {
-    private static final String DATE_FMT = "EEEE, MMMM dd";
+    private static final String DATE_FMT = "MMMM dd";
 
     /**
      * @param timestamp The requested date

@@ -9,22 +9,6 @@ import com.emdevsite.todayhist.R;
 public class LogUtils {
 
     /**
-     * Logs an update in SharedPreferences
-     * @param context
-     */
-    public static synchronized void logUpdate(Context context) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putLong(context.getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp())
-            .apply();
-    }
-
-    public static synchronized long getLastUpdate(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context)
-            .getLong(context.getString(R.string.prefs_key_lastUpdate), -1);
-    }
-
-    /**
      * Logs an exception to the android console
      * @param level The log level for the error
      * @param cls The offending class

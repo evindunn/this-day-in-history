@@ -1,9 +1,12 @@
 package com.emdevsite.todayhist;
 
 import android.animation.ValueAnimator;
+import android.app.IntentService;
 import android.databinding.DataBindingUtil;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -11,6 +14,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,6 +22,7 @@ import android.view.View;
 
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.databinding.ActivityMainBinding;
+import com.emdevsite.todayhist.sync.SyncIntentService;
 import com.emdevsite.todayhist.sync.SyncUtils;
 import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
@@ -67,6 +72,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    public synchronized void refresh() {
+        showProgressBar(true);
+        SyncUtils.syncNow(this);
+        getSupportLoaderManager().restartLoader(ID_LOADER_EVENTS, null, this);
+    }
+
     /**
      * Play the animation hint whenever user resumes the app
      */
@@ -112,8 +123,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.mi_refresh) {
-            showProgressBar(true);
-            SyncUtils.syncNow(this);
+            refresh();
+        } else if (item.getItemId() == R.id.mi_license) {
+            new LicenseFragment().show(getSupportFragmentManager(), LicenseFragment.TAG);
         }
         return super.onOptionsItemSelected(item);
     }
