@@ -40,11 +40,31 @@ public class MainActivity extends AppCompatActivity implements
 
         // For swipe hinting
         mActivityData.vpText.setPageMargin(
-                -getResources().getDimensionPixelSize(R.dimen.dimen_view_pager_margin)
+            -getResources().getDimensionPixelSize(R.dimen.dimen_view_pager_margin)
         );
 
         initAnimation();
+        SyncUtils.initialize(this);
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(
+            getString(R.string.prefs_key_pagerPos),
+            mActivityData.vpText.getCurrentItem()
+        );
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String key = getString(R.string.prefs_key_pagerPos);
+        if (savedInstanceState.containsKey(key)) {
+            int pos = savedInstanceState.getInt(key);
+            mActivityData.vpText.setCurrentItem(pos);
+        }
     }
 
     public void showProgressBar(boolean visible) {
@@ -59,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onResume() {
-        SyncUtils.syncNow(this);
         mAlphaAnimation.start();
         super.onResume();
     }
@@ -88,9 +107,9 @@ public class MainActivity extends AppCompatActivity implements
                         this,
                         EventDbContract.EventTable.CONTENT_URI,
                         null,
-                        null,
-                        null,
-                        EventDbContract.EventTable.COLUMN_YEAR
+                        String.format("%s = ?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
+                        new String[] { String.valueOf(DateUtils.getTimestamp()) },
+                        EventDbContract.EventTable.COLUMN_YEAR + " ASC"
                 );
             }
             default: {
@@ -103,13 +122,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
-            long lastUpdate = PreferenceManager
-                .getDefaultSharedPreferences(this)
-                .getLong(getString(R.string.prefs_key_lastUpdate), DateUtils.getTimestamp());
+            int timeStampColumn = data.getColumnIndex(EventDbContract.EventTable.COLUMN_TIMESTAMP);
+            data.moveToFirst();
+            long timestamp = data.getLong(timeStampColumn);
 
-            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(lastUpdate));
+            getSupportActionBar().setTitle(DateUtils.getTimestampAsString(timestamp));
             mHistoryViewAdapter.swapCursor(data);
-            mActivityData.vpText.setCurrentItem(data.getCount() / 2, true);
 
             LogUtils.logMessage('d', getClass(), "Load finished.");
         } else {

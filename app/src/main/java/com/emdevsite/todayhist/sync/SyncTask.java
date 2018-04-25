@@ -17,10 +17,8 @@ public class SyncTask {
 
     synchronized public static void syncEvents(Context context) {
         try {
-            // Skip if already synced today
             long today = DateUtils.getTimestamp();
-            long lastUpdate = PreferenceManager.getDefaultSharedPreferences(context)
-                    .getLong(context.getString(R.string.prefs_key_lastUpdate), -1);
+            long lastUpdate = LogUtils.getLastUpdate(context);
 
             if (lastUpdate == today) {
                 LogUtils.logMessage('d', SyncTask.class, "Already synced today, skipping");
@@ -33,37 +31,40 @@ public class SyncTask {
             if (values != null && values.length > 0) {
                 ContentResolver resolver = context.getContentResolver();
 
-                // Delete data not from today
-                int deleted = resolver.delete(
-                    EventDbContract.EventTable.CONTENT_URI,
-                    String.format("%s != ?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
-                    new String[] { String.valueOf(today) }
-                );
-
-                LogUtils.logMessage(
-                        'd',
-                        SyncTask.class,
-                        String.format(Locale.getDefault(), "Deleted %d stale db entries", deleted)
-                );
-
                 // Insert new data
                 int inserted = resolver.bulkInsert(EventDbContract.EventTable.CONTENT_URI, values);
 
                 LogUtils.logMessage(
                         'd',
                         SyncTask.class,
-                        String.format(Locale.getDefault(), "Added %d new db entries", inserted)
+                        String.format("Added %d new db entries", inserted)
                 );
-
-                // Log the update time
-                PreferenceManager.getDefaultSharedPreferences(context)
-                    .edit()
-                    .putLong(
-                        context.getString(R.string.prefs_key_lastUpdate),
-                        DateUtils.getTimestamp()
-                    )
-                    .apply();
             }
+        } catch (Exception e) {
+            LogUtils.logError('w', SyncTask.class, e);
+        }
+    }
+
+    synchronized public static void cleanEvents(Context context) {
+        try {
+            LogUtils.logMessage(
+                'd',
+                SyncTask.class,
+                "Starting clean task..."
+            );
+
+            // Delete data not from today
+            int deleted = context.getContentResolver().delete(
+                EventDbContract.EventTable.CONTENT_URI,
+                String.format("%s != ?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
+                new String[]{String.valueOf(DateUtils.getTimestamp())}
+            );
+
+            LogUtils.logMessage(
+                'd',
+                SyncTask.class,
+                String.format("Deleted %d stale db entries", deleted)
+            );
         } catch (Exception e) {
             LogUtils.logError('w', SyncTask.class, e);
         }
