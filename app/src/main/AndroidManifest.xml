@@ -20,6 +20,15 @@
         <service
             android:name=".sync.SyncIntentService"
             android:exported="false" />
+        <service android:name=".sync.EventFirebaseCleanService" />
+
+        <!-- Sync when the date changes -->
+        <receiver android:name=".sync.SyncTimeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -28,7 +37,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ArrowActivity"></activity>
     </application>
 
 </manifest>

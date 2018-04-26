@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.emdevsite.todayhist.HistoryFragment;
 import com.emdevsite.todayhist.data.EventDbContract;
+import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
 
 /**
@@ -28,24 +29,28 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
         cursor = null;
     }
 
-    public void swapCursor(Cursor cursor) {
+    public void swapCursor(@Nullable Cursor cursor) {
         this.cursor = cursor;
         notifyDataSetChanged();
     }
-
+    
     @Override
     public Fragment getItem(int i) {
         Fragment fragment = new HistoryFragment();
         try {
             Bundle args = new Bundle();
-
             cursor.moveToPosition(i);
 
             int year_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_YEAR);
             int text_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TEXT);
+            int tstamp_col = cursor.getColumnIndex(EventDbContract.EventTable.COLUMN_TIMESTAMP);
 
             args.putString(EventDbContract.EventTable.COLUMN_YEAR, cursor.getString(year_col));
             args.putString(EventDbContract.EventTable.COLUMN_TEXT, cursor.getString(text_col));
+            args.putString(
+                EventDbContract.EventTable.COLUMN_TIMESTAMP,
+                DateUtils.getTimestampAsString(cursor.getLong(tstamp_col))
+            );
 
             fragment.setArguments(args);
 
@@ -63,7 +68,9 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
         return cursor.getCount();
     }
 
-    public Cursor getCursor() {
-        return cursor;
+    @Override
+    public int getItemPosition(@NonNull Object object) {
+        // Fragements should always be rebuilt when notifyDatasetChanged() is called
+        return POSITION_NONE;
     }
 }

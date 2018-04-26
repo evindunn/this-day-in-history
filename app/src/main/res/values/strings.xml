@@ -3,23 +3,17 @@
     <string name="license">License</string>
     <string name="license_ok">OK</string>
     <string name="refresh">Refresh</string>
-    <string name="year">Year</string>
-
-    <string name="connect_err">
-        Could not determine network connection status.
-        Please try again with an active network connection.
-    </string>
 
     <string name="license_content">
         All data is taken directly and unmodified from http://history.muffinlabs.com.
-        This data is licensed under CC BY-SA 3.0, which can be found at
-        https://creativecommons.org/licenses/by-sa/3.0/us/legalcode.
+        This data is licensed under the <a href="https://creativecommons.org/licenses/by-sa/3.0/us/legalcode">
+            Creative Commons Attribution-ShareAlike 3.0
+        </a> license.
     </string>
 
     <string name="swipe_hint">Swipe</string>
+    <string name="netRequired">A network connection is required to refresh</string>
 
-    <string name="json_event_key" translatable="false">Events</string>
-    <string name="json_data_key" translatable="false">data</string>
-    <string name="json_event_year_key" translatable="false">year</string>
-    <string name="json_event_text_key" translatable="false">text</string>
+    <string name="prefs_key_pagerPos" translatable="false">pagerPos</string>
+    <string name="prefs_key_lastUpdate" translatable="false">lastUpdate</string>
 </resources>

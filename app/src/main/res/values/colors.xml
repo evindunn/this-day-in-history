@@ -12,4 +12,5 @@
     <color name="colorSecondaryText">#000000</color>
 
     <color name="colorHint">#777777</color>
+    <color name="text_color_primary">#ddc2c2c2</color>
 </resources>

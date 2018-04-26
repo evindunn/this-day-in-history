@@ -19,7 +19,6 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class NetworkUtils {
     private static final String DOMAIN = "history.muffinlabs.com";
-    private static final Uri BASE_HISTORY_URI = getBaseHistoryUri();
 
     /**
      * @param context The current Android context
@@ -38,11 +37,15 @@ public class NetworkUtils {
         return false;
     }
 
+    /**
+     * @param timestamp The date to get the url for
+     * @return The url for this day in history
+     */
     @Nullable
     public static URL getHistoryUrl(long timestamp) {
         int month = DateUtils.getFieldFromTimestamp(Calendar.MONTH, timestamp);
         int day = DateUtils.getFieldFromTimestamp(Calendar.DAY_OF_MONTH, timestamp);
-        Uri uri = BASE_HISTORY_URI.buildUpon()
+        Uri uri = getBaseHistoryUri().buildUpon()
                 .appendPath("date")
                 .appendPath(String.valueOf(month))
                 .appendPath(String.valueOf(day))
@@ -57,6 +60,9 @@ public class NetworkUtils {
         }
     }
 
+    /**
+     * @return The base url for our history data with no specific date
+     */
     private static Uri getBaseHistoryUri() {
         return new Uri.Builder()
                 .scheme("http")

@@ -4,6 +4,7 @@
     <dimen name="dimen_view_pager_padding">16dp</dimen>
     <dimen name="dimen_view_pager_margin">16dp</dimen>
     <dimen name="dimen_text_view_padding_horiz">16dp</dimen>
+    <dimen name="dimen_license_padding">18dp</dimen>
 
     <!-- [view pager padding] * 3 -->
     <dimen name="dimen_swipe_text_view_margin_bottom">48dp</dimen>

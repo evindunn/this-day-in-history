@@ -7,17 +7,16 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+/**
+ * Assorted utilities for manipulation of dates/timestamps
+ */
 public class DateUtils {
-    private static final String DATE_FMT = "EEEE, MMMM dd";
+    private static final String DATE_FMT = "MMMM dd";
 
-    public static String getTimestampAsString() {
-        long timestamp = getTimestamp();
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_FMT, Locale.getDefault());
-        calendar.setTimeInMillis(timestamp);
-        return formatter.format(calendar.getTime());
-    }
-
+    /**
+     * @param timestamp The requested date
+     * @return Formatted string representation of the requested date
+     */
     public static String getTimestampAsString(long timestamp) {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_FMT, Locale.getDefault());
@@ -25,6 +24,11 @@ public class DateUtils {
         return formatter.format(calendar.getTime());
     }
 
+    /**
+     * @param field The desired Calendar.[FIELD]
+     * @param timestamp The timestamp to get the requested field from
+     * @return
+     */
     public static int getFieldFromTimestamp(int field, long timestamp) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(timestamp);
@@ -35,6 +39,9 @@ public class DateUtils {
         return val;
     }
 
+    /**
+     * @return Today's date as a long timestamp
+     */
     public static long getTimestamp() {
         Calendar calendar = Calendar.getInstance();
 
@@ -46,6 +53,10 @@ public class DateUtils {
         return calendar.getTimeInMillis();
     }
 
+    /**
+     * @return The long timestamp for the requested month & day
+     * Year is always the current year and time is always midnight
+     */
     public static long getTimestamp(int month, int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MONTH, month - 1);

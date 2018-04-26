@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
 import com.emdevsite.todayhist.utils.NetworkUtils;
 
@@ -16,7 +15,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Scanner;
 
 /**
@@ -28,6 +26,10 @@ public class HistoryGetter {
     private static final String TAG = HistoryGetter.class.getSimpleName();
     private static final String FIELD_BASE_DATA = "data";
     private static final String FIELD_EVENT_ARRAY = "Events";
+    private static final String FIELD_YEAR = "year";
+    private static final String FIELD_TEXT = "text";
+    private static final String FIELD_URL_ARRAY = "links";
+    private static final String FIELD_URL = "link";
 
     @Nullable
     public static ContentValues[] asContentValues(long timestamp) {
@@ -47,34 +49,64 @@ public class HistoryGetter {
 
         //
 
-        ContentValues[] values = new ContentValues[events.length()];
+        ArrayList<ContentValues> values = new ArrayList<>();
 
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < events.length(); i++) {
 
             ContentValues row = new ContentValues();
             String text;
             String year;
+            String sUrl;
 
             try {
-                text = events.getJSONObject(i).getString("text");
-                year = events.getJSONObject(i).getString("year");
+                // Grab event year and text
+                year = events.getJSONObject(i).getString(FIELD_YEAR);
+                text = events.getJSONObject(i).getString(FIELD_TEXT);
+
+                // Build array of links for the event
+                JSONArray links = events.getJSONObject(i).getJSONArray(FIELD_URL_ARRAY);
+                StringBuilder sBuilder = new StringBuilder();
+                for (int j = 0; j < links.length(); j++) {
+                    sBuilder.append(links.getJSONObject(j).getString(FIELD_URL));
+                    if (j < links.length() - 1) {
+                        sBuilder.append(";");
+                    }
+                }
+
+                sUrl = sBuilder.toString();
+
             } catch (JSONException e) {
                 LogUtils.logError('w', HistoryGetter.class, e);
                 continue;
             }
 
-            row.put(EventDbContract.EventTable.COLUMN_DATE, timestamp);
-            row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
-            row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
+            boolean replaced = false;
+            for (int k = 0; k < values.size(); k++) {
+                ContentValues oldVals = values.get(k);
+                if (oldVals.getAsString(EventDbContract.EventTable.COLUMN_YEAR).equals(year)) {
+                    String oldText = oldVals.getAsString(EventDbContract.EventTable.COLUMN_TEXT);
+                    oldVals.put(
+                        EventDbContract.EventTable.COLUMN_TEXT,
+                        String.format("%s\n\n%s", oldText, text));
+                    replaced = true;
+                    break;
+                }
+            }
 
-            values[i] = row;
+            if (!replaced) {
+                row.put(EventDbContract.EventTable.COLUMN_TIMESTAMP, timestamp);
+                row.put(EventDbContract.EventTable.COLUMN_YEAR, year);
+                row.put(EventDbContract.EventTable.COLUMN_TEXT, text);
+                row.put(EventDbContract.EventTable.COLUMN_URL, sUrl);
+                values.add(row);
+            }
         }
 
-        if (values.length == 0) {
+        if (values.size() == 0) {
             return null;
         }
 
-        return values;
+        return values.toArray(new ContentValues[values.size()]);
     }
 
     /**

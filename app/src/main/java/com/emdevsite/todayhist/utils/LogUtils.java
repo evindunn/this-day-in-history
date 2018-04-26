@@ -1,8 +1,13 @@
 package com.emdevsite.todayhist.utils;
 
+import android.content.Context;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.emdevsite.todayhist.R;
+
 public class LogUtils {
+
     /**
      * Logs an exception to the android console
      * @param level The log level for the error

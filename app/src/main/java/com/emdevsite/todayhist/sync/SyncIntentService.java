@@ -9,7 +9,7 @@ import com.emdevsite.todayhist.utils.LogUtils;
 public class SyncIntentService extends IntentService {
 
     public SyncIntentService() {
-        super("history-sync-service");
+        super("com.emdevsite.todayhist.SYNC-SERVICE");
     }
 
     @Override
