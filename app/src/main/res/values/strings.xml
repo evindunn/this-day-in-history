@@ -12,6 +12,7 @@
     </string>
 
     <string name="swipe_hint">Swipe</string>
+    <string name="netRequired">A network connection is required to refresh</string>
 
     <string name="prefs_key_pagerPos" translatable="false">pagerPos</string>
     <string name="prefs_key_lastUpdate" translatable="false">lastUpdate</string>

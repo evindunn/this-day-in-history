@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.databinding.ActivityMainBinding;
@@ -26,6 +27,7 @@ import com.emdevsite.todayhist.sync.SyncIntentService;
 import com.emdevsite.todayhist.sync.SyncUtils;
 import com.emdevsite.todayhist.utils.DateUtils;
 import com.emdevsite.todayhist.utils.LogUtils;
+import com.emdevsite.todayhist.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
@@ -73,6 +75,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public synchronized void refresh() {
+        if (!NetworkUtils.checkInternetConnection(this)) {
+            Toast.makeText(this, R.string.netRequired, Toast.LENGTH_LONG).show();
+            return;
+        }
         showProgressBar(true);
         SyncUtils.syncNow(this);
         getSupportLoaderManager().restartLoader(ID_LOADER_EVENTS, null, this);
