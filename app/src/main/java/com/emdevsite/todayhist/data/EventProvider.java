@@ -4,22 +4,19 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import com.emdevsite.todayhist.utils.LogUtils;
+import android.util.Log;
 
 public class EventProvider extends ContentProvider {
-    private static final int CODE_ALL = 0;
-    private static final int CODE_ROW = 1;
-
-    private static final String FMT_QUERY_SELECTION = "%s = ?";
-    private static final String FMT_URI_ERR = "Invalid URI: %s";
+    private static final int CODE_EVENTS = 0;
+    private static final String ERR_FMT_URI = "Invalid uri: %s";
+    private static final UriMatcher sUriMatcher = createUriMatcher();
 
     private EventDbHelper mDbHelper;
-    private static final UriMatcher sURI_MATCHER = buildUriMatcher();
 
     @Override
     public boolean onCreate() {
@@ -28,131 +25,107 @@ public class EventProvider extends ContentProvider {
     }
 
     /**
-     * Queries the database. Only URI is used, with its format dictating
-     * query params
-     * @param uri content://com.emdevsite.todayhist/data
-     * @param projection unused
-     * @param selection unused
-     * @param selectionArgs unused
-     * @param sortOrder unused
-     * @return A cursor containing the results, always formatted by date
+     * @param uri The Event DB uri
+     * @param projection The requested DB columns
+     * @param selection The DB query string
+     * @param selectionArgs The DB query args
+     * @param sortOrder The sort order for the results
+     * @return A Cursor containing the results, or null
      */
     @Nullable
     @Override
-    public Cursor query(
-            @NonNull Uri uri,
-            @Nullable String[] projection,
-            @Nullable String selection,
-            @Nullable String[] selectionArgs,
-            @Nullable String sortOrder) {
-
-        int match = sURI_MATCHER.match(uri);
-        Cursor cursor;
-
-        switch (match) {
-            // Whole table
-            case CODE_ALL: {
-                SQLiteDatabase db = mDbHelper.getReadableDatabase();
-                cursor = db.query(
+    public Cursor query(@NonNull Uri uri,
+                        @Nullable String[] projection,
+                        @Nullable String selection,
+                        @Nullable String[] selectionArgs,
+                        @Nullable String sortOrder) {
+        switch (sUriMatcher.match(uri)) {
+            case CODE_EVENTS: {
+                try {
+                    Cursor results = mDbHelper.getReadableDatabase().query(
                         EventDbContract.EventTable.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
                         null,
                         null,
-                        EventDbContract.EventTable.COLUMN_TIMESTAMP
-                );
-                cursor.setNotificationUri(
+                        sortOrder
+                    );
+                    results.setNotificationUri(
                         getContext().getContentResolver(),
-                        uri
-                );
-
-                LogUtils.logMessage(
-                    'd',
-                    getClass(),
-                    "Queried db and returned cursor of size " + cursor.getCount()
-                );
-
-                break;
+                        EventDbContract.EventTable.CONTENT_URI
+                    );
+                    return results;
+                } catch (SQLException e) {
+                    String className = getClass().getSimpleName();
+                    Log.w(className, "Error retrieving db values");
+                    Log.w(className, e.getMessage());
+                    return null;
+                }
             }
 
-            default: {
-                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
-            }
+            default: { throw new IllegalArgumentException(String.format(ERR_FMT_URI, uri)); }
         }
-
-        return cursor;
     }
 
+
     /**
-     * Inserts all given values into the table at the given uri
-     * @param uri content://com.emdevsite/date
+     * @param uri The Event DB uri
      * @param values The values to insert
-     * @return The number of rows inserted
+     * @return The DB uri if successful & values were inserted, null if not
      */
+    @Nullable
     @Override
-    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
-        int inserted = 0;
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        switch (sURI_MATCHER.match(uri)) {
-            // Only accepted uri is the whole table
-            case CODE_ALL: {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+        switch (sUriMatcher.match(uri)) {
+            case CODE_EVENTS: {
+                Uri result = null;
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 try {
-                    for (ContentValues value : values) {
-                        long id = db.insertWithOnConflict(
-                            EventDbContract.EventTable.TABLE_NAME,
-                            null,
-                            value,
-                            SQLiteDatabase.CONFLICT_REPLACE
-                        );
-                        if (id != -1) {
-                            inserted++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
+                    long inserted = db.insertWithOnConflict(
+                        EventDbContract.EventTable.TABLE_NAME,
+                        null,
+                        values,
+                        SQLiteDatabase.CONFLICT_REPLACE
+                    );
 
-                } catch (Exception e) {
-                    LogUtils.logMessage('w', getClass(), "Error inserting values into db");
-                    LogUtils.logError('w', getClass(), e);
+                    if (inserted > 0) {
+                        db.setTransactionSuccessful();
+                        result = uri;
+                        getContext().getContentResolver().notifyChange(
+                            EventDbContract.EventTable.CONTENT_URI,
+                            null
+                        );
+                    }
+                } catch (SQLException e) {
+                    String className = getClass().getSimpleName();
+                    Log.w(className, "Error inserting db values");
+                    Log.w(className, e.getMessage());
 
                 } finally {
                     db.endTransaction();
                 }
 
-                if (inserted > 0) {
-                    getContext().getContentResolver().notifyChange(uri, null);
-                }
-                return inserted;
+                return result;
             }
 
-            default: {
-                return super.bulkInsert(uri, values);
-            }
+            default: { throw new IllegalArgumentException(String.format(ERR_FMT_URI, uri)); }
         }
     }
 
     /**
-     * Deletes rows from the table @ the given uri matching the given seletion / selection args
-     * @param uri content://com.emdevsite.todayhist/date
-     * @param selection unused
-     * @param selectionArgs unused
-     * @return The number of rows deleted
+     * @param uri The Event DB uri
+     * @param selection The DB query string for rows to delete
+     * @param selectionArgs The DB query args
+     * @return The number of successfully deleted rows
      */
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        int match = sURI_MATCHER.match(uri);
-        int deleted;
-        switch (match) {
-            case CODE_ALL: {
+        switch (sUriMatcher.match(uri)) {
+            case CODE_EVENTS: {
+                int deleted = 0;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
-                // If we pass null, it'll delete all the rows, but won't return the number of
-                // rows by default; If we pass "1" it'll do both
-                if (selection == null) {
-                    selection = "1";
-                }
-
                 db.beginTransaction();
                 try {
                     deleted = db.delete(
@@ -160,59 +133,47 @@ public class EventProvider extends ContentProvider {
                         selection,
                         selectionArgs
                     );
-                    db.setTransactionSuccessful();
 
                     if (deleted > 0) {
-                        getContext().getContentResolver().notifyChange(uri, null);
+                        db.setTransactionSuccessful();
+                        getContext().getContentResolver().notifyChange(
+                            EventDbContract.EventTable.CONTENT_URI,
+                            null
+                        );
                     }
+
+                } catch (SQLException e) {
+                    String className = getClass().getSimpleName();
+                    Log.w(className, "Error deleting db values");
+                    Log.w(className, e.getMessage());
                 } finally {
                     db.endTransaction();
                 }
 
-                break;
+                return deleted;
             }
 
-            default: {
-                throw new IllegalArgumentException(String.format(FMT_URI_ERR, uri));
-            }
+            default: { throw new IllegalArgumentException(String.format(ERR_FMT_URI, uri)); }
         }
-
-        return deleted;
-    }
-
-    @Nullable
-    @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        throw new RuntimeException("insert() is not implemented");
     }
 
     @Override
-    public int update(
-        @NonNull Uri uri,
-        @Nullable ContentValues values,
-        @Nullable String selection,
-        @Nullable String[] selectionArgs) {
-        throw new RuntimeException("update() is not implemented");
+    public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+        throw new RuntimeException("EventProvider.update() isn't implemented");
     }
 
-    /**
-     * @param uri The Uri for the requested data
-     * @return The MIME type for the data at the given uri
-     */
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        throw new RuntimeException("EventProvider.getType() isn't implemented yet");
+        throw new RuntimeException("EventProvider.getType() isn't implemented");
     }
 
-    private static UriMatcher buildUriMatcher() {
+    /**
+     * @return A new URI matcher for the Event DB
+     */
+    private static UriMatcher createUriMatcher() {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
-        matcher.addURI(EventDbContract.AUTHORITY, EventDbContract.PATH_DATA, CODE_ALL);
-        matcher.addURI(
-            EventDbContract.AUTHORITY,
-            String.format("%s/%s/#", EventDbContract.PATH_DATA, EventDbContract.PATH_ROW),
-            CODE_ROW
-        );
+        matcher.addURI(EventDbContract.AUTHORITY, EventDbContract.PATH_EVENTS, CODE_EVENTS);
         return matcher;
     }
 }

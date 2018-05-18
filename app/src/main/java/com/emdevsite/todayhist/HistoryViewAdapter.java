@@ -7,21 +7,17 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.View;
-import android.view.ViewGroup;
+import android.util.Log;
 
-import com.emdevsite.todayhist.HistoryFragment;
 import com.emdevsite.todayhist.data.EventDbContract;
 import com.emdevsite.todayhist.utils.DateUtils;
-import com.emdevsite.todayhist.utils.LogUtils;
 
 /**
  * Created by edunn on 2/27/18.
  * Class for providing a new HistoryFragment to the user following a swipe
  */
 
-public class HistoryViewAdapter extends FragmentStatePagerAdapter {
+class HistoryViewAdapter extends FragmentStatePagerAdapter {
     private Cursor cursor;
 
     HistoryViewAdapter(FragmentManager fm) {
@@ -55,7 +51,10 @@ public class HistoryViewAdapter extends FragmentStatePagerAdapter {
             fragment.setArguments(args);
 
         } catch (Exception e) {
-            LogUtils.logError('w', getClass(), e);
+            Log.e(
+                getClass().getSimpleName(),
+                String.format("[%s] %s", e.getCause(), e.getMessage())
+            );
         }
         return fragment;
     }

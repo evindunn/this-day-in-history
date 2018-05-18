@@ -12,28 +12,33 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <provider
-            android:name=".data.EventProvider"
             android:authorities="com.emdevsite.todayhist"
-            android:exported="false" />
+            android:name=".data.EventProvider"
+            android:exported="false">
+        </provider>
 
         <service
             android:name=".sync.SyncIntentService"
-            android:exported="false" />
-        <service android:name=".sync.EventFirebaseCleanService" />
-
-        <!-- Sync when the date changes -->
-        <receiver android:name=".sync.SyncTimeReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.DATE_CHANGED"/>
+                <action android:name="com.emdevsite.todayhist.sync.ScheduleSyncIntentService.ACTION_SCHEDULE_SYNC" />
             </intent-filter>
-        </receiver>
+        </service>
+
+        <service
+            android:name=".sync.FirebaseSyncJobService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
 
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

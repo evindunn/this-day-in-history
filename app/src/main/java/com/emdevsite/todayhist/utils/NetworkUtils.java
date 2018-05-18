@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -41,8 +40,7 @@ public class NetworkUtils {
      * @param timestamp The date to get the url for
      * @return The url for this day in history
      */
-    @Nullable
-    public static URL getHistoryUrl(long timestamp) {
+    public static URL getHistoryUrl(long timestamp) throws MalformedURLException {
         int month = DateUtils.getFieldFromTimestamp(Calendar.MONTH, timestamp);
         int day = DateUtils.getFieldFromTimestamp(Calendar.DAY_OF_MONTH, timestamp);
         Uri uri = getBaseHistoryUri().buildUpon()
@@ -51,13 +49,7 @@ public class NetworkUtils {
                 .appendPath(String.valueOf(day))
                 .build();
 
-        try {
-            LogUtils.logMessage('i', NetworkUtils.class, uri.toString());
-            return new URL(uri.toString());
-        } catch (MalformedURLException e) {
-            LogUtils.logError('w', NetworkUtils.class, e);
-            return null;
-        }
+        return new URL(uri.toString());
     }
 
     /**

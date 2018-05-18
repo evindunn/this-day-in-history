@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone"
+    android:windowBackground="@null"
+    android:background="@color/colorPrimary"
+    android:paddingTop="@dimen/paddingTop_error"
+    android:paddingLeft="@dimen/padding_errorText"
+    android:paddingRight="@dimen/padding_errorText"
+    android:paddingStart="@dimen/padding_errorText"
+    android:paddingEnd="@dimen/padding_errorText"
+    android:drawableTop="@drawable/ic_error_outline"
+    android:drawablePadding="@dimen/padding_errorImage"
+    android:text="@string/error_no_results"
+    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+    android:textColor="@color/colorSecondary"
+    android:textSize="@dimen/textSize_error"
+    android:textAlignment="center" />

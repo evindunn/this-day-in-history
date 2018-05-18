@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="dimen_arrow_padding">48dp</dimen>
-    <dimen name="dimen_view_pager_padding">16dp</dimen>
-    <dimen name="dimen_view_pager_margin">16dp</dimen>
-    <dimen name="dimen_text_view_padding_horiz">16dp</dimen>
-    <dimen name="dimen_license_padding">18dp</dimen>
+    <dimen name="license_padding">18dp</dimen>
 
-    <!-- [view pager padding] * 3 -->
-    <dimen name="dimen_swipe_text_view_margin_bottom">48dp</dimen>
+    <dimen name="marginHoriz_swipeHint">64dp</dimen>
+    <dimen name="marginVert_swipeHint">32dp</dimen>
+
+    <dimen name="paddingHoriz_event">16dp</dimen>
+    <dimen name="textSize_event">16sp</dimen>
+
+    <dimen name="padding_viewPager">16dp</dimen>
+    <dimen name="margin_viewPager">16dp</dimen>
+
+    <dimen name="imageSize_error">128dp</dimen>
+    <dimen name="padding_errorImage">24dp</dimen>
+    <dimen name="textSize_error">24sp</dimen>
+    <dimen name="padding_errorText">24dp</dimen>
+    <dimen name="paddingTop_error">64dp</dimen>
 </resources>

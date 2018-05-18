@@ -8,8 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by edunn on 3/12/18.
  * Low-level management of the event database
  */
-public class EventDbHelper extends SQLiteOpenHelper {
-    private static final int VERSION = 4;   // Increment if db schema is changed
+class EventDbHelper extends SQLiteOpenHelper {
+    private static final int VERSION = 6;   // Increment if db schema is changed
     private static final String FILENAME = "events.db";
     private static final String SQL_DELETE_TBL = String.format(
             "DROP TABLE IF EXISTS %s",
@@ -20,15 +20,13 @@ public class EventDbHelper extends SQLiteOpenHelper {
             "%s INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "%s INTEGER NOT NULL, " +
             "%s TEXT UNIQUE NOT NULL, " +
-            "%s TEXT NOT NULL, " +
             "%s TEXT NOT NULL" +
         ");",
         EventDbContract.EventTable.TABLE_NAME,
         EventDbContract.EventTable._ID,
         EventDbContract.EventTable.COLUMN_TIMESTAMP,
         EventDbContract.EventTable.COLUMN_YEAR,
-        EventDbContract.EventTable.COLUMN_TEXT,
-        EventDbContract.EventTable.COLUMN_URL
+        EventDbContract.EventTable.COLUMN_TEXT
     );
 
     EventDbHelper(Context context) {

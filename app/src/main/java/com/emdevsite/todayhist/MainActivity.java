@@ -1,43 +1,42 @@
 package com.emdevsite.todayhist;
 
-import android.animation.ValueAnimator;
-import android.app.IntentService;
-import android.databinding.DataBindingUtil;
-import android.os.AsyncTask;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.database.Cursor;
-import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.emdevsite.todayhist.data.EventDbContract;
-import com.emdevsite.todayhist.databinding.ActivityMainBinding;
-import com.emdevsite.todayhist.sync.SyncIntentService;
-import com.emdevsite.todayhist.sync.SyncUtils;
+import com.emdevsite.todayhist.sync.FirebaseSyncJobService;
 import com.emdevsite.todayhist.utils.DateUtils;
-import com.emdevsite.todayhist.utils.LogUtils;
 import com.emdevsite.todayhist.utils.NetworkUtils;
+import com.emdevsite.todayhist.utils.SyncUtils;
 
 public class MainActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor>,
-        ValueAnimator.AnimatorUpdateListener {
-    
+        LoaderManager.LoaderCallbacks<Cursor> {
+
     private HistoryViewAdapter mHistoryViewAdapter;
-    private ValueAnimator mAlphaAnimation;
-    private ActivityMainBinding mActivityData;
+    private ProgressBar mProgressBar;
+    private ViewPager mViewPager;
+    private TextView mErrorView;
 
     private static final int ID_LOADER_EVENTS = 14;
+    private static final String KEY_CURRENT_PAGE = "page";
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     /**
      * Creates a new MainActivity for This Day in History
@@ -46,42 +45,79 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mActivityData = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        setContentView(R.layout.activity_main);
+
+        // Set up members
+        mProgressBar = findViewById(R.id.progress_bar);
+        mViewPager = findViewById(R.id.view_pager);
+        mErrorView = findViewById(R.id.error_view);
 
         mHistoryViewAdapter = new HistoryViewAdapter(getSupportFragmentManager());
-        mActivityData.vpText.setAdapter(mHistoryViewAdapter);
+        mViewPager.setAdapter(mHistoryViewAdapter);
 
-        // For swipe hinting
-        mActivityData.vpText.setPageMargin(
-            -getResources().getDimensionPixelSize(R.dimen.dimen_view_pager_margin)
-        );
-
-        initAnimation();
+        // Initialize sync & start the loader
         SyncUtils.initialize(this);
         getSupportLoaderManager().initLoader(ID_LOADER_EVENTS, null, this);
     }
 
     /**
-     * @param visible Whether to hide the main view and show the "loading" progress bar
+     * Save the current ViewPager page
      */
-    public void showProgressBar(boolean visible) {
-        if (visible) {
-            mActivityData.vpText.setVisibility(View.INVISIBLE);
-            mActivityData.progressBar.setVisibility(View.VISIBLE);
-        } else {
-            mActivityData.progressBar.setVisibility(View.GONE);
-            mActivityData.vpText.setVisibility(View.VISIBLE);
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        outState.putInt(KEY_CURRENT_PAGE, mViewPager.getCurrentItem());
+        super.onSaveInstanceState(outState, outPersistentState);
+    }
+
+    /**
+     * Restore the last ViewPager page
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.containsKey(KEY_CURRENT_PAGE)) {
+            int page = savedInstanceState.getInt(KEY_CURRENT_PAGE);
+            mViewPager.setCurrentItem(page, true);
         }
     }
 
-    public synchronized void refresh() {
+    /**
+     * @param visible Whether the "loading" progress bar should be shown
+     */
+    private void showProgressBar(boolean visible) {
+        if (visible) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mViewPager.setVisibility(View.GONE);
+        } else {
+            mViewPager.setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * @param visible Whether the error view should be shown
+     *                TODO: animate
+     */
+    private void showErrorView(boolean visible) {
+        if (visible) {
+            mErrorView.setVisibility(View.VISIBLE);
+            mViewPager.setVisibility(View.GONE);
+        } else {
+            mViewPager.setVisibility(View.VISIBLE);
+            mErrorView.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Syncs the event database
+     */
+    private void refresh() {
         if (!NetworkUtils.checkInternetConnection(this)) {
             Toast.makeText(this, R.string.netRequired, Toast.LENGTH_LONG).show();
-            return;
+        } else {
+            showProgressBar(true);
+            FirebaseSyncJobService.dispatchSyncNow(this);
         }
-        showProgressBar(true);
-        SyncUtils.syncNow(this);
-        getSupportLoaderManager().restartLoader(ID_LOADER_EVENTS, null, this);
     }
 
     /**
@@ -89,7 +125,9 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     protected void onResume() {
-        mAlphaAnimation.start();
+        // Load the saved page, if any
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mViewPager.setCurrentItem(prefs.getInt(KEY_CURRENT_PAGE, 0));
         super.onResume();
     }
 
@@ -98,17 +136,10 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     protected void onPause() {
-        mAlphaAnimation.cancel();
+        // Save the current page
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.edit().putInt(KEY_CURRENT_PAGE, mViewPager.getCurrentItem()).apply();
         super.onPause();
-    }
-
-    /**
-     * Release all resources associated with the animation hint
-     */
-    @Override
-    protected void onDestroy() {
-        mAlphaAnimation.removeAllUpdateListeners();
-        super.onDestroy();
     }
 
     /**
@@ -147,19 +178,22 @@ public class MainActivity extends AppCompatActivity implements
     public Loader<Cursor> onCreateLoader(int loader_id, Bundle args) {
         switch (loader_id) {
             case ID_LOADER_EVENTS: {
-                LogUtils.logMessage('d', getClass(), "Loading...");
+                long today = DateUtils.getTimestamp();
+                Log.d(
+                    LOG_TAG,
+                    String.format(
+                        "Loading results for %s...",
+                        DateUtils.sDateFormatter.format(today)
+                    )
+                );
                 showProgressBar(true);
                 return new CursorLoader(
                         this,
                         EventDbContract.EventTable.CONTENT_URI,
-                        new String[] {
-                            EventDbContract.EventTable.COLUMN_YEAR,
-                            EventDbContract.EventTable.COLUMN_TEXT,
-                            EventDbContract.EventTable.COLUMN_TIMESTAMP
-                        },
+                        null,
                         String.format("%s=?", EventDbContract.EventTable.COLUMN_TIMESTAMP),
-                        new String[] { String.valueOf(DateUtils.getTimestamp()) },
-                        EventDbContract.EventTable.COLUMN_YEAR + " DESC"
+                        new String[] { String.valueOf(today) },
+                        EventDbContract.EventTable.COLUMN_YEAR
                 );
             }
             default: {
@@ -175,13 +209,18 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        mHistoryViewAdapter.swapCursor(data);
         showProgressBar(false);
         if (data != null && data.getCount() > 0) {
-            mHistoryViewAdapter.swapCursor(data);
-            mActivityData.vpText.setCurrentItem(0, true);
-            LogUtils.logMessage('d', getClass(), "Load finished.");
+            Log.d(LOG_TAG, "Load finished");
+            showErrorView(false);
         } else {
-            LogUtils.logMessage('d', getClass(), "Load returned no results.");
+            Log.d(LOG_TAG, "Load returned no results");
+            if (NetworkUtils.checkInternetConnection(this)) {
+                refresh();
+            } else {
+                showErrorView(true);
+            }
         }
     }
 
@@ -192,31 +231,5 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         mHistoryViewAdapter.swapCursor(null);
-    }
-
-    /**
-     * Steps to perform when animation is updated
-     * @param animation The swipe hint animation that is triggered
-     */
-    @Override
-    public void onAnimationUpdate(ValueAnimator animation) {
-        float v = (float) animation.getAnimatedValue();
-        mActivityData.ivLeft.setAlpha(v);
-        mActivityData.ivRight.setAlpha(v);
-        mActivityData.tvSwipeHint.setAlpha(v);
-    }
-
-    /**
-     * Helper method that initializes our swipe hint animation, called in onCreate()
-     */
-    private void initAnimation() {
-        final int TIME_ANIMATION = 2000;
-        final int REPEAT_ANIMATION = 7;
-
-        mAlphaAnimation = ValueAnimator.ofFloat(0f, 1f);
-        mAlphaAnimation.setDuration(TIME_ANIMATION);
-        mAlphaAnimation.setRepeatCount(REPEAT_ANIMATION);
-        mAlphaAnimation.setRepeatMode(ValueAnimator.REVERSE);
-        mAlphaAnimation.addUpdateListener(this);
     }
 }

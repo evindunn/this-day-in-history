@@ -2,7 +2,6 @@
     <string name="app_name">This Day In History</string>
     <string name="license">License</string>
     <string name="license_ok">OK</string>
-    <string name="refresh">Refresh</string>
 
     <string name="license_content">
         All data is taken directly and unmodified from http://history.muffinlabs.com.
@@ -13,7 +12,11 @@
 
     <string name="swipe_hint">Swipe</string>
     <string name="netRequired">A network connection is required to refresh</string>
+    <string name="error_no_results">
+        Uh Oh! It looks like we can\'t load any results right now. Check your
+        network connection and try refreshing.
+    </string>
 
-    <string name="prefs_key_pagerPos" translatable="false">pagerPos</string>
-    <string name="prefs_key_lastUpdate" translatable="false">lastUpdate</string>
+    <string name="contentDesc_leftArrow">Left Arrow</string>
+    <string name="contentDesc_rightArrow">Right Arrow</string>
 </resources>
